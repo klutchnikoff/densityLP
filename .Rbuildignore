@@ -1,0 +1,7 @@
+^\.github$
+^\.claude$
+^docs$
+^ci-local\.sh$
+^\.gitignore$
+^.*\.Rproj$
+^\.Rproj\.user$

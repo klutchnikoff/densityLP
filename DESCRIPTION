@@ -1,0 +1,26 @@
+Package: densityLP
+Title: Local Polynomial Density Estimation on Complicated Domains
+Version: 0.1.0
+Authors@R: c(
+    person("Karine",   "Bertin",       role = "aut",
+           email = "karine.bertin@uv.cl",
+           comment = c(ORCID = "0000-0002-8167-137X")),
+    person("Nicolas",  "Klutchnikoff", role = c("aut", "cre"),
+           email = "nicolas.klutchnikoff@univ-rennes2.fr",
+           comment = c(ORCID = "0000-0001-9349-0771")),
+    person("Frederic", "Ouimet",       role = "aut",
+           email = "frederic.ouimet2@mcgill.ca",
+           comment = c(ORCID = "0000-0001-7933-5265")))
+Description: Nonparametric local polynomial estimator for multivariate density
+    functions on known domains of arbitrary dimension, including complicated
+    domains with sharp concavities, holes, and local pinches such as polynomial
+    sectors. Implements the procedure of Bertin, Klutchnikoff and Ouimet
+    (Bernoulli, forthcoming).
+License: GPL-3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Suggests:
+    testthat (>= 3.0.0),
+    spatstat.geom
+Config/testthat/edition: 3

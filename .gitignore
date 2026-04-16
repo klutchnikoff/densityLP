@@ -1,0 +1,22 @@
+# R package build artifacts
+*.Rproj.user
+*.Rhistory
+*.RData
+*.Ruserdata
+.Rproj.user/
+
+# R CMD check
+/*.tar.gz
+/*.Rcheck/
+
+# roxygen2-generated files: tracked in git (needed for install_github())
+# Do not edit NAMESPACE or man/*.Rd by hand — run roxygen2::roxygenise()
+
+# Air formatter cache
+.air/
+
+# macOS
+.DS_Store
+
+# testthat snapshots (keep only intentional ones)
+tests/testthat/_snaps/
