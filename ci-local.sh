@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # Local CI simulation — mirrors .github/workflows/ci.yaml
-# Run before every push: bash ci-local.sh
-# Or install as pre-push hook: bash ci-local.sh is called automatically.
+#
+# Usage:
+#   bash ci-local.sh          — full CI (docs + format + tests + R CMD check)
+#   bash ci-local.sh --fast   — fast checks only (docs + format), for pre-commit
 
 set -euo pipefail
+
+FAST=false
+[[ "${1:-}" == "--fast" ]] && FAST=true
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -40,6 +45,11 @@ if ! air format --check .; then
   fail "Formatting check failed"
 fi
 ok "Formatting"
+
+if $FAST; then
+  echo -e "\n${GREEN}Fast checks passed — safe to commit.${NC}"
+  exit 0
+fi
 
 # ── 2. testthat ───────────────────────────────────────────────────────────────
 step "Running tests (testthat)"
