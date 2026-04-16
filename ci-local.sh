@@ -16,6 +16,19 @@ step() { echo -e "\n${YELLOW}==>${NC} $*"; }
 
 cd "$(git rev-parse --show-toplevel)"
 
+# ── 0. Docs (roxygen2) ────────────────────────────────────────────────────────
+step "Checking docs are up to date (roxygen2)"
+Rscript -e "roxygen2::roxygenise()" 2>/dev/null
+if ! git diff --exit-code --quiet -- NAMESPACE man/; then
+  echo ""
+  echo "The following generated files are out of date:"
+  git diff --name-only -- NAMESPACE man/
+  echo ""
+  echo "Run roxygen2::roxygenise(), re-stage, and commit."
+  fail "Docs out of date"
+fi
+ok "Docs"
+
 # ── 1. Formatting (Air) ────────────────────────────────────────────────────────
 step "Checking formatting (Air)"
 if ! command -v air &>/dev/null; then
