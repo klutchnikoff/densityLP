@@ -4,7 +4,7 @@
 \alias{domain_func}
 \title{Domain defined by an indicator function}
 \usage{
-domain_func(is_in_domain, d)
+domain_func(is_in_domain, d, method = c("rejection", "qmc"))
 }
 \arguments{
 \item{is_in_domain}{Vectorised function \code{f(X_mat)} where \code{X_mat} is an
@@ -12,6 +12,9 @@ domain_func(is_in_domain, d)
 vector of length \code{n}.}
 
 \item{d}{Space dimension (integer >= 1).}
+
+\item{method}{Sampling method: \code{"rejection"} (default) or \code{"qmc"} (Sobol
+quasi-Monte Carlo, faster convergence for smooth domains).}
 }
 \value{
 An \code{"lp_domain"} object.
