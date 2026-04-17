@@ -51,7 +51,8 @@ test_that("sampler_sector: points lie within D_k", {
   t_pt <- c(0.5, 0.1)
   s <- sampler_sector(k)(300L, t = t_pt, h = 0.2)
   pts <- sweep(t(s$points), 2L, t_pt, "+")
-  x <- pts[, 1L]; y <- pts[, 2L]
+  x <- pts[, 1L]
+  y <- pts[, 2L]
   expect_true(all(x >= 0 - 1e-9 & x <= 1 + 1e-9))
   expect_true(all(y >= 0 - 1e-9 & y <= x^k + 1e-9))
 })

@@ -46,6 +46,9 @@ domain_func <- function(is_in_domain, d) {
   stopifnot(is.function(is_in_domain))
   stopifnot(is.numeric(d), length(d) == 1L, d >= 1, d == floor(d))
   d <- as.integer(d)
-  new_lp_domain(d, function() sampler_rejection(is_in_domain), label = "analytic domain")
+  new_lp_domain(
+    d,
+    function() sampler_rejection(is_in_domain),
+    label = "analytic domain"
+  )
 }
-

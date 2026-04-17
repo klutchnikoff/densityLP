@@ -1,0 +1,845 @@
+%% Template for the submission to:
+%% Bernoulli [BJ]
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% In this template, the places where you   %%
+%% need to fill in your information are     %%
+%% indicated by '???'.                      %%
+%%                                          %%
+%% Please do not use \input{...} to include %%
+%% other tex files. Submit your LaTeX       %%
+%% manuscript as one .tex document.         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\documentclass[bj,numbers]{imsart}% uncomment this for numbers citation
+\documentclass[bj,authoryear]{imsart}
+
+%% Packages
+\usepackage{amsthm,amsmath,amsfonts}
+\usepackage{dsfont} % To get the \mathds font for the indicator functions.
+\usepackage{mathtools} % To get the \eqqcolon command.
+\usepackage[only,llfloor,rrfloor]{stmaryrd} % To use the \llfloor and \rrfloor commands.
+
+\startlocaldefs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% Uncomment next line to change            %%
+%% the type of equation numbering           %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\numberwithin{equation}{section}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% For Axiom, Claim, Corollary, Hypothesis, %%
+%% Lemma, Theorem, Proposition              %%
+%% use \theoremstyle{plain}                 %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% For Assumption, Definition, Example,     %%
+%% Notation, Property, Remark, Fact         %%
+%% use \theoremstyle{remark}                %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{remark}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{assumption}{Assumption}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Please put your definitions here:        %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\PP}{\mathsf{P}}
+\newcommand{\EE}{\mathsf{E}}
+\newcommand{\Var}{\mathsf{Var}}
+\newcommand{\1}{\mathds{1}}
+\newcommand{\rd}{\mathrm{d}}
+\newcommand{\domain}{\mathcal{D}}
+\newcommand{\voisin}{\mathcal{V}}
+\newcommand{\pwrisk}{R_n}
+\newcommand{\finfty}{\left\|f\right\|_{\voisin(\rho)}}
+% Easy reference to lemma numbers in the Supplementary Material
+\newcommand{\lempositivedefinite}{6.1~}
+\newcommand{\lemusualbehavior}{6.2~}
+\newcommand{\leminftynormf}{6.3~}
+\newcommand{\lemBernsteinone}{6.4~}
+\newcommand{\lemBernsteintwo}{6.5~}
+\endlocaldefs
+
+\begin{document}
+
+\begin{frontmatter}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% Enter the title of your article here     %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{A new adaptive local polynomial density estimation procedure on complicated domains}
+\runtitle{Local polynomial density estimation on complicated domains}
+
+\begin{aug}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ORCID can be inserted by command:         %%
+%% \orcid{0000-0000-0000-0000}               %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author[a1]{\inits{K.B.}\fnms{Karine}~\snm{Bertin}\ead[label=e1]{karine.bertin@uv.cl}\orcid{0000-0002-8167-137X}}
+\author[a2]{\inits{N.K.}\fnms{Nicolas}~\snm{Klutchnikoff}\ead[label=e2]{nicolas.klutchnikoff@univ-rennes2.fr}\orcid{0000-0001-9349-0771}}
+\author[a3,a4]{\inits{F.O.}\fnms{Fr\'ed\'eric}~\snm{Ouimet}\ead[label=e3]{frederic.ouimet2@mcgill.ca}\orcid{0000-0001-7933-5265}} % *** Corresponding author
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Addresses                                %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\address[a1]{CIMFAV-INGEMAT, Universidad de Valpa{r}a\'{\i}so, Valpara\'iso, Chile\printead[presep={,\ }]{e1}}
+\address[a2]{Univ Rennes, CNRS, IRMAR-UMR 6625, F-35000 Rennes, France\printead[presep={,\ }]{e2}}
+\address[a3]{Centre de recherches math\'ematiques, Universit\'e de Montr\'eal, Montreal, Canada}
+\address[a4]{Department of Mathematics and Statistics, McGill University, Montreal, Canada\printead[presep={,\ }]{e3}}
+\end{aug}
+
+\begin{abstract}
+This paper presents a novel approach for pointwise estimation of multivariate density functions on known domains of arbitrary dimensions using nonparametric local polynomial estimators. Our method is highly flexible, as it applies to both simple domains, such as open connected sets, and more complicated domains that are not star-shaped around the point of estimation. This enables us to handle domains with sharp concavities, holes, and local pinches, such as polynomial sectors. Additionally, we introduce a data-driven selection rule based on the general ideas of Goldenshluger and Lepski. Our results demonstrate that the local polynomial estimators are minimax under a $L^2$ risk across a wide range of H\"older-type functional classes. In the adaptive case, we provide oracle inequalities and explicitly determine the convergence rate of our statistical procedure. Simulations on polynomial sectors show that our oracle estimates outperform those of the most popular alternative method, found in the \texttt{sparr} package for the \texttt{R} software. Our statistical procedure is implemented in an online \texttt{R} package which is readily accessible.
+\end{abstract}
+
+\begin{keyword} % in alphabetical order
+\kwd{Adaptive estimation}
+\kwd{complicated domain}
+\kwd{concave domain}
+\kwd{local polynomial}
+\kwd{minimax}
+\kwd{nonparametric density estimation}
+\kwd{oracle inequality}
+\kwd{pinched domain}
+\kwd{pointwise risk}
+\kwd{polynomial sector}
+\end{keyword}
+
+\end{frontmatter}
+
+\section{Introduction}\label{sec:introduction}
+
+    In practice, estimating a probability density function near or at the boundary of its support $\domain$ is often challenging. This issue is particularly prominent in standard kernel density estimators, which suffer from a well-known bias that negatively impacts their performance. In situations where $\domain$ represents a geometrically `simple' domain in $\R^d$, this behavior is more indicative of limitations in these statistical procedures rather than an inherently difficult estimation problem. Consequently, dedicated estimators have been devised to reduce or eliminate the bias term, providing more accurate density estimates.
+
+    For instance, Bernstein estimators, introduced by \cite{Vitale1975} and studied further among others by \cite{GawronskiStadtmuller1981,Petrone1999,Ghosal2001,BabuChaubey2006,PetroneWasserman2002}, utilize a specific choice of discrete kernel function whose shape adapts locally to the support of the density and leads to reduced bias near the boundaries. Asymmetric kernel estimators, put forward independently by \cite{AitchisonLauder1985} and \cite{Chen1999}, extend the same idea to smooth kernels. The reflection method, proposed by \cite{Schuster1985} and further investigated by \cite{ClineHart1991}, involves extending the support of the density function symmetrically beyond the observed data range and incorporating reflected data points into the estimation process. Boundary kernel estimators, initially proposed by \cite{GasserMuller1979} and further refined by \cite{GasserMullerMammitzsch1985,Muller1991,Jones1993,ZhangKarunamuni1998,ZhangKarunamuni2000}, assign higher weights to data points located near the boundaries, effectively giving greater emphasis to the boundary regions during estimation and improving accuracy. Local polynomial smoothers with variable bandwidths, introduced by \cite{FanGijbels1992} in the regression context, see also \cite{FanGijbels1996,ChengFanMarron1997}, fit low-degree polynomials to local neighborhoods of data points, adaptively adjusting the polynomial degree and bandwidth to mitigate boundary bias. Other notable techniques include smoothing splines \citep{Gu1993,GuQiu1993}, generalized jackknifing \citep{Jones1993,JonesFoster1996}, and the transformation technique \citep{MarronRuppert1994,RupperCline1994}, which applies a transformation to the data before smoothing on a more suited domain. A combination that leverages the benefits of both reflection and transformation was proposed by \cite{ZhangKarunamuniJones1999}. For a modern review of kernel density estimation methods and bandwidth selection for spatial data, refer to \cite{DaviesMarshallHazelton2018}.
+
+    In spite of the remarkable strides made throughout the years to alleviate the boundary bias of kernel density estimators, it often comes at the cost of producing other issues such as estimators that lack local adaptivity (i.e., are sensitive to outliers, generate spurious bumps, etc.), inadequate data-driven bandwidth selection rules (e.g., plug-in methods with reference/pilot densities that spill over boundaries), or density estimates that are not bona fide density functions (i.e., that are negative in some regions or do not integrate to one). Only recently, some methods have been able to address all these concerns at once.
+
+    For example, \cite{BotevGrotowskiKroese2010} propose an adaptive kernel density estimator which is the solution, in a space-scale setting, to the Fokker-Planck partial differential equation (PDE) associated with an It\^o diffusion process having the empirical density function as initial condition. The scale variable plays the role of the bandwidth and the shape specifics of the domain are taken into account directly using the boundary conditions of the PDE. Their proposed estimator is locally adaptive, has a bandwidth selection procedure which is free of the so-called normal reference rules (and thus is truly nonparametric), deals well with boundary bias and is always a bona fide density function. Further, the overall computational cost remains low. Yet, as pointed out by \cite{Ferraccioli_et_al2021}, their estimator is unable to handle domains with complicated geometries.
+
+    In recent efforts to tackle the above concerns regarding kernel density estimators, specific focus has been directed towards estimating multivariate density functions supported on domains with complicated geometries. Notably, these efforts include Gaussian field approaches \cite{LingrenRueLindstrom2011,Bakka_et_al2019,Niu_et_al2019}, PDE regularization schemes \cite{Azzimonti_et_al2014,Azzimonti_et_al2015,Sangalli2021,Ferraccioli_et_al2021,Arnone_et_al2022}, shape constraints \cite{Feng_et_al2021,XuSamworth2021}, soap film smoothing \cite{WoodBravingtonHedley2008}, spline methods \cite{Ramsay2002,WangRanalli2007,LaiSchumaker2007,GuillasLai2010,SangalliRansayRamsay2013,LaiWang2013,MillerWood2014,ZhouPan2014,Yu_et_al2021}, diffusion kernels \cite{BarryMcIntyre2011,McSwigganBaddeleyNair2017,McIntyreBarry2018,BarryMcIntyre2020}, and other hybrid methods such as the complex region spatial smoother (CReSS) of \cite{Scott-Hayward_et_al2015} based on improved geodesic distance estimation.
+
+    Unfortunately, all these methods are either intrinsically adapted for global estimation instead of pointwise estimation (and thus cannot always uphold the best choice of bandwidth near specific points), or they have only been developed, implemented and studied for spatial data in two or three dimensions.
+    For instance, the state of the art PDE regularization method on Euclidean spaces is the one by \cite{Ferraccioli_et_al2021}. In that paper, the authors introduce a log-likelihood approach with Laplacian operator regularization that penalizes high local curvatures and thus controls the global roughness of the estimates. Their method can handle complicated shapes, sharp concavities and holes. They also improve on the method of \cite{BotevGrotowskiKroese2010} by discretizing the aforementioned Fokker-Planck equation and solving numerically using a forward Euler integration scheme, which allows for complicated domain shapes. The problem is that their global choice of regularization parameter limits refinements in the vicinity of any particular point in the domain. Furthermore, their general method relies crucially on a triangulation of the space, which is only numerically viable in low dimensions. The other approaches have the same issue, as they also rely on a global regularization or a low domain dimension. For the few methods in arbitrary dimensions (e.g., \cite{Niu_et_al2019, BarryMcIntyre2020}), some face practical challenges or lack theoretical development.
+
+    The present paper addresses these gaps in the literature by introducing a new adaptive nonparametric local polynomial estimator suitable for the pointwise estimation of multivariate density functions supported on known domains of arbitrary dimensions and investigating its theoretical properties and practical implementation. Our method is highly flexible, as it applies to both simple domains, such as open connected sets, and more complicated domains that are not star-shaped around the point of estimation. This enables us to deal with domains containing sharp concavities, holes, and local pinches, such as polynomial sectors. To elaborate, our approach involves estimating the density function locally using the minimizer of a continuous kernel-weighted least-squares problem on a space of polynomials. Our selection procedure follows the general ideas of \cite{Lepski1991adaptive} and \cite{GoldenshlugerLepski2008,GoldenshlugerLepski2009,GoldenshlugerLepski2011,GoldenshlugerLepski2014}. It consists of jointly optimizing the polynomial degree and bandwidth over a discrete set and selecting the pair that minimizes the sum of upper bounds on the bias and a penalized version of the standard deviation. Importantly, our estimator does not require any tuning parameters, making it genuinely nonparametric. Moreover, it addresses the classical issues of kernel density estimators mentioned earlier, as it is locally adaptive, exhibits relatively small boundary bias regardless of the domain's shape, and is asymptotically a bona fide density function. For earlier advancements in density estimation on simple bounded domains using a similar Goldenshluger-Lepski selection procedure, refer to \cite{BertinKlutchnikoff2014,BertinElKoleiKlutchnikoff2019}, and also to \cite{BertinKlutchnikoff2017,Bertin_et_al2020} under the assumption of weakly dependent observations.
+
+    Although our bandwidth selection procedure differs significantly, a similar concept was recently developed by \cite{CattaneoJanssonMa2020JASA} for estimating univariate density functions using local polynomials. Their approach involves taking the slope factor of the linear monomial in a kernel-weighted $L^2$ projection of the empirical cumulative distribution function (cdf) onto a polynomial space. In simpler terms, they project the cdf and identify the derivative of the projection (i.e., the density estimator), while our method directly projects the density function itself. Their estimator is boundary adaptive, does not require prior knowledge of the boundary points, and always yields a valid density function. Moreover, their implementation is simple, requiring no specific data modifications or additional tuning parameters. For the \texttt{R} software implementation, refer to \cite{CattaneoJanssonMa2022JSS}, and for an extension of their method to conditional univariate density functions, see \cite{CattaneoChandakJanssonMa2024}. However, one serious limitation of their method is its unclear generalizability to multivariate density functions.
+
+%    \begin{remark}\upshape
+%        In private email communications, Cattaneo, Jansson, and Ma informed us that they had previously considered a multivariate version of their estimator but were unable to determine the asymptotic variance expression. Consequently, they could not implement the pointwise approximate MSE-optimal bandwidth selection procedure. We attempted to address this issue ourselves but were unsuccessful. Thus, the development of a multivariate version of their estimator remains an open problem, meriting further research.
+%    \end{remark}
+
+    Here is an outline of the paper. Section~\ref{sec:framework} provides prerequisite definitions and information on the pointwise $L^2$ risk measure, domains and H\"older classes considered for density functions, as well as the concept of adaptive rate of convergence. Section~\ref{sec:statistical.procedure} presents a detailed description of our statistical procedure, which involves a kernel-weighted $L^2$ projection of the density function onto a polynomial space, and the application of the Goldenshluger-Lepski method for the joint selection of the polynomial degree and bandwidth. Section~\ref{sec:main.results} states our main results. For the base local polynomial estimator, this corresponds to explicit bounds on its bias and variance, and its minimaxity on simple and complicated domains. For our full statistical procedure (i.e., including the selection procedure), we derive an oracle-type inequality and the estimator is shown to achieve the optimal adaptive rate of convergence on simple and complicated domains. To aid understanding, the results for complicated domains are specifically stated for polynomial sectors. The case of unknown compact convex domains is also briefly discussed in Section~\ref{sec:unknown.domains}. Section~\ref{sec:simulations} complements the theoretical results with simulations on polynomial sectors. Our oracle estimates are shown to outperform those of the most popular alternative method, found in the \texttt{sparr} package \cite{Davies_et_al2024} for the \texttt{R} software. For convenience, our statistical procedure is implemented in an online \texttt{R} package called \texttt{densityLocPoly}, see \cite{BertinKlutchnikoffOuimet2023Rcode}. The proofs are all deferred to the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement}. %Specifically, it comprises the proofs of all the propositions and theorems stated in the present text, as well as some preliminary technical lemmas and their proofs..
+
+
+\section{Framework}\label{sec:framework}
+
+    Define the domain $\domain$ as the closure of a nonempty open subset of $\R^d$ endowed with the sup norm, denoted by $\|\cdot\|_{\infty}$. Our focus will be on studying our estimator locally at a point $t\in \domain$, inside its surrounding neighborhoods of radius $h\in (0,\infty)$,
+    \begin{equation*}
+        \voisin(h) = \left\{u\in \R^d : t+u\in \domain ~\text{and}~ \|u\|_{\infty} \leq h\right\} = (\domain - t) \cap (h \Delta),
+    \end{equation*}
+    where $\Delta = [-1,1]^d$.
+    We assume that there exists a parameter $\rho\in (0,e^{-1}]$ such that the set $\voisin(\rho)$ is a neighborhood of the origin for the topology on $\domain$ inherited from $\R^d$.
+    Since $\domain$, $d$, $t$ and $\rho$ are fixed throughout the paper, the dependence on these quantities is often omitted for readability.
+
+    For $n\in \N=\{1,2,\ldots\}$, let $\mathbb{X}_n = (X_1,\ldots,X_n)$ be a vector of $n$ independent copies of a random variable $X$ which is supported on $\domain$ and has a probability density function $f$ with respect to the Lebesgue measure on $\R^d$, hereafter denoted by $\mathrm{Leb}(\cdot)$. Our goal is to estimate the density function $f$ at the fixed point $t\in \domain$. By estimator, we mean any map $\tilde{f} = S \circ \mathbb{X}_n$ such that $S:\domain^n \to \smash{\R^{\R^d}}$ is Borel-measurable.
+    The accuracy of such an estimator is measured by the pointwise risk
+    \begin{equation*}
+        \pwrisk(\tilde{f}, f) = \left(\EE\left[\big\{\tilde{f}(t) - f(t)\big\}^2\right]\right)^{1/2},
+    \end{equation*}
+    where $\EE$ denotes the expectation with respect to the probability measure $\PP$ of the random sample $\mathbb{X}_n$.
+
+    \begin{remark}\label{rem:decomposition}\upshape
+        Utilizing a pointwise $L^2$ risk measure is not inherently essential for deriving our findings. However, this choice facilitates the mathematical analysis across various proofs by decomposing the squared risk into two distinct components: the squared bias and the variance:
+        \begin{equation*}
+            \big\{\pwrisk(\tilde{f}, f)\big\}^2 = \left[\EE\big\{\tilde{f}(t)\big\} - f(t)\right]^2 + \Var\big\{\tilde{f}(t)\big\}.
+        \end{equation*}
+        This breakdown simplifies the determination of a suitable bandwidth parameter when seeking the optimal convergence rate of our statistical procedure. Such arguments feature prominently in the proofs of our minimax and adaptivity results; see Propositions~\ref{prop:minimaxity.simple.domains}~and~\ref{prop:minimaxity.polynomial.sectors}, as well as Theorems~\ref{thm:adaptivity.simple.domains}~and~\ref{thm:adaptivity.polynomial.sectors}. More generally, one could explore a pointwise $L^p$ risk measure for a fixed $p\geq 1$. However, this approach necessitates additional steps at various junctures to accommodate the imperfect decomposition:
+        \begin{equation*}
+            \EE\left[\big\{\tilde{f}(t) - f(t)\big\}^p\right] \leq 2^{p-1} \times \left\{\left|\EE\big\{\tilde{f}(t)\big\} - f(t)\right| + \EE\left(\big[\tilde{f}(t) - \EE\big\{\tilde{f}(t)\big\}\big]^p\right)\right\}.
+        \end{equation*}
+        For instance, we would need to apply Marcinkiewicz–Zygmund inequalities \citep[p.~498]{MR1368405} to estimate the second expectation on the right-hand side in terms of the variance. Modifications to the proof of Theorem~\ref{thm:oracle.result} would also be required, shifting the focus from $\EE(T^2)$ to $\EE(T^p)$, etc. While it is possible to consider a more general risk measure, doing so would inevitably convolute the mathematical methods and ideas used in deriving our results with additional technical intricacies. Therefore, this avenue is not further explored here and is left open for future investigation.
+    \end{remark}
+
+    Since there is no ambiguity, we use $\PP$ and $\EE$ instead of the more cumbersome notations $\PP_{\!f,n}$ and $\EE_{f,n}$. However, we will maintain the dependency on $n$ for the pointwise risk $\pwrisk$ as we will investigate its asymptotic behavior in Section~\ref{sec:main.results}. Specifically, we will study the minimax and adaptive pointwise estimation of $f$ over a large collection of H\"older-type functional classes. The remainder of this section covers the fundamental concepts that are used in this paper.
+
+\subsection{H\"older-type classes}
+
+    First, consider a collection of polynomials, each having a degree which is less than or equal to a specified integer.
+
+    \begin{definition}
+        Let $m\in \N_0 = \N\cup\{0\}$ and define
+        \begin{equation*}
+            \mathcal{P}_{\!m} = \operatorname{Span}\left(\varphi_{\alpha} : \alpha\in \N_0^d ~\text{and}~ |\alpha| \leq m\right),
+        \end{equation*}
+        where, for any $u\in \R^d$, we have the monomials
+        \begin{equation*}
+            \varphi_{\alpha}(u) = \prod_{j=1}^d u_j^{\alpha_j}
+            \quad \text{with} \quad
+            \lvert\alpha\rvert = \sum_{j=1}^d \alpha_j.
+        \end{equation*}
+        In particular, note that $\varphi_0 \equiv 1$.
+    \end{definition}
+
+    Second, for any smoothness parameter $s\in (0,\infty)$ and any Lipschitz constant $L\in (0,\infty)$, define the H\"older-type functional class $\Sigma(s,L)$ inside which a density function $f$ can be approximated by a polynomial of prescribed degree in a neighborhood of $t\in \domain$.
+
+    \begin{definition}\label{def:Sigma.s.L}
+        Let $(s,L)\in (0,\infty)^2$ be given.
+        A density function $f:\domain\to\R$ belongs to the H\"older class $\Sigma(s,L)$ if there exists a polynomial $q\in \mathcal{P}_{\llfloor s \rrfloor}$ such that, for any $u\in \voisin(\rho)$,
+        \begin{equation}\label{eq:approx-holder}
+            |f(t+u) - q(u) | \leq L\|u\|_{\infty}^s.
+        \end{equation}
+        Here, $\llfloor s \rrfloor$ denotes the greatest integer less than $s$. In particular, $\llfloor s \rrfloor=s-1$ if $s\in \N$.
+    \end{definition}
+
+    \begin{remark}\upshape
+        The functional class $\Sigma(s,L)$ is not commonly used in statistics.
+        However, we believe that it offers more flexibility than classical H\"older spaces in the context of a domain $\domain$ with a complicated boundary. A few comments are in order:
+        \begin{enumerate}
+            \item Knowing that a density function $f$ belongs to the H\"older class $\Sigma(s,L)$ only provides local information (in a neighborhood of $t$) about the regularity of $f$. Note also that the polynomial $q$  satisfies $q(0) = f(t)$.
+            \item If the partial derivatives $\smash{D^{\alpha} f = {\partial^{|\alpha|} f}/{\partial x_1^{\alpha_1}\cdots\partial x_d^{\alpha_d}}}$ exist for all $|\alpha|\leq \llfloor s \rrfloor$ and if the interior of $\voisin(\rho)$, in the topology of $\R^d$, is star-shaped with respect to the origin, then the Taylor polynomial of $f$ at $t$ can be substituted for $q$ in~\eqref{eq:approx-holder}. In particular, this is true if the interior of $\voisin(\rho)$ is an open convex subset of $\R^d$ that contains the origin.
+            \item The existence of $q$ does not imply the existence of directional derivatives for $f$. In particular, for some points on the boundary of the domain $\domain$, the partial derivatives (in the directions given by the canonical basis) may not even make sense. Let us give two simple examples of densities defined on a disk sector to illustrate these assertions. Define
+                \begin{equation*}
+                    \domain = \left\{(r\cos\theta,r\sin\theta)\in \R^2 : 0\leq r\leq 1, \frac{\pi}{6}\leq\theta\leq\frac{\pi}{3}\right\}.
+                \end{equation*}
+                The density function $f_1(x,y) = 12/\pi\times\1_{\domain}(x,y)$ is constant on $\domain$, but the partial derivatives do not exist at $0\in \domain$. Similarly, the density function $f_2(x,y) = A g(x+y) \1_{\domain}(x,y)$, where $g(u) = 1 + u + u^2 + u^3\sin(1/u)$ and $A$ is a normalization constant, can be approximated in a neighborhood of $0\in \domain$  by a polynomial of degree $2$, even if no directional derivatives of order $2$ exist at the origin.
+        \end{enumerate}
+    \end{remark}
+
+    \begin{remark}\upshape
+        Because the degrees of the polynomials in the basis $\mathcal{P}_{\llfloor s \rrfloor}$ are restricted by the value $\llfloor s \rrfloor$ across all dimensions, the functional class $\Sigma(s,L)$ can be categorized as isotropic. One might ponder the possibility of defining an anisotropic extension of $\Sigma(s,L)$ to provide greater flexibility. Here is one approach: For any integers $m_1,\ldots,m_d\in \N_0$, define the new polynomial basis
+        \begin{equation*}
+            \mathcal{P}_{\!m_1,\ldots,m_d} = \operatorname{Span}\left(\varphi_{\alpha} : \alpha\in \N_0^d ~\text{and}~ \alpha_i \leq m_i ~~\forall i\in \{1,\ldots,d\}\right).
+        \end{equation*}
+        Then, for any smoothness parameters $s_1,\ldots,s_d\in (0,\infty)$ and any Lipschitz constant $L\in (0,\infty)$, let the new anisotropic H\"older class $\Sigma(s_1,\ldots,s_d,L)$ be defined by the polynomials $q\in \smash{\mathcal{P}_{\llfloor s_1 \rrfloor, \ldots, \llfloor s_d \rrfloor}}$ such that, for any $u\in \voisin(\rho)$,
+        \begin{equation*}
+            |f(t+u) - q(u)| \leq L (|u_1|^{s_1} + \dots + |u_d|^{s_d}).
+        \end{equation*}
+        This new definition would naturally lead in Section~\ref{sec:statistical.procedure} to the adoption of a more general parameter $\gamma = (m_1,\ldots,m_d,h_1,\ldots,h_d)$ for our adaptive statistical procedure, where the $m_i$'s and $h_i$'s specify the estimator's smoothness and scale of estimation in each dimension, respectively. Consequently, numerous technical adjustments would be necessary in the statements of the results and their proofs, such as the additivity of the bias terms $\smash{h_i^{\beta_{m_i}(s_i)}}$ in Proposition~\ref{prop:control.bias}. While the conceptual framework would remain largely unchanged, these technical modifications would obscure the mathematical methodologies and ideas underpinning the derivation of the new results. This avenue is not further explored here, remaining open for future research. For recent advancements in multivariate density estimation within an anisotropic framework, refer to, e.g., \cite{Rebelles2015,BertinElKoleiKlutchnikoff2019,LiuWu2019,AmmousDedeckerDuval2024,VaretLacourMassartRivoirard2023}.
+    \end{remark}
+
+\subsection{Adaptive estimation}
+
+    As mentioned at the beginning of Section~\ref{sec:framework}, we are interested in the pointwise adaptive estimation, in a minimax framework, of the density function $f$ over the collection of H\"older-type functional classes $\Sigma(s,L)$, where the nuisance parameter $(s,L)$ is assumed to belong to $\mathcal{K} = (0,\infty)^2$.
+    Since the results of \cite{Lepski1991adaptive}, it is well-known that, in this context, it is impossible to construct a single estimation procedure $f_n^{\star}$ which attains the minimax rate of convergence
+    \begin{equation}\label{eq:minimax.rate}
+        N_n(s,L) = \inf_{\tilde{f}_n} \sup_{f\in \Sigma(s,L)}\pwrisk(\tilde{f}_n, f)
+    \end{equation}
+    simultaneously for all functional classes, i.e., which satisfies
+    \begin{equation}\label{eq:minimax.rate.attained}
+        \sup_{f\in \Sigma(s,L)}\pwrisk(f_n^{\star}, f) \lesssim N_n(s,L), \quad \text{for all } (s,L)\in \mathcal{K}.
+    \end{equation}
+    In~\eqref{eq:minimax.rate}, the infimum is taken over all possible estimators $\tilde{f}_n$ of $f$, while the general notation $u_n \lesssim v_n$ used in~\eqref{eq:minimax.rate.attained} means that $u_n,v_n \geq 0$ and $\limsup_{n\to\infty} u_n / v_n <\infty$.
+
+    It is therefore necessary to define a specific notion of adaptive rate of convergence (ARC) before trying to construct an optimal estimation procedure. Several definitions were proposed in the last decades, see, e.g., \cite{Lepski1991adaptive}, \cite{Tsybakov1998}, \cite{K-MMS-2014} and \cite{Rebelles2015}. In this paper we adopt the definition of \cite{K-MMS-2014}, which coincides in our framework with the refined version introduced by \cite{Rebelles2015}. In order to be self-contained, we recall the definition of admissibility of a collection of normalizations and the notion of ARC employed in these two papers. It is always assumed that collections such as $\phi = \{\phi_n(s,L) : (s,L)\in \mathcal{K}, n\in \N\}$ have nonnegative components, i.e., $\phi_n(s,L)\geq 0$ for all $(s,L)\in \mathcal{K}$ and all $n\in \N$.
+
+    \begin{definition}\label{def:admissibility}
+        A collection $\phi = \{\phi_n(s,L) : (s,L)\in \mathcal{K}, n\in \N\}$ is said to be admissible if there exists an estimator $\tilde{f}_n$ such that
+        \begin{equation*}
+            \sup_{f\in \Sigma(s,L)}\pwrisk(\tilde{f}_n, f)\lesssim \phi_n(s,L),
+            \quad
+            \text{for all } (s,L)\in \mathcal{K}.
+        \end{equation*}
+    \end{definition}
+
+    Given two collections $\phi = \{\phi_n(s,L) : (s,L)\in \mathcal{K}, n\in \N\}$ and  $\psi = \{\psi_n(s,L) : (s,L)\in \mathcal{K}, n\in \N\}$, we define two subsets of $\mathcal{K}$, namely
+    \begin{equation*}
+        [\psi \ll \phi] = \left\{(s,L)\in \mathcal{K} : \lim_{n\to\infty} \frac{\psi_n(s,L)}{\phi_n(s,L)} = 0\right\},
+    \end{equation*}
+    and
+    \begin{equation*}
+        [\psi \ggg \phi] = \left\{(s,L)\in \mathcal{K} : \limsup_{n\to\infty} \frac{\psi_n(s,L)}{\phi_n(s,L)}\times\frac{\psi_n(s',L')}{\phi_n(s',L')} =\infty, ~~ \forall (s',L')\in[\psi \ll \phi]\right\}.
+    \end{equation*}
+    Equipped with these notations, the notion of ARC is defined as follows.
+
+    \begin{definition}\label{def:ARC}
+        An admissible collection $\phi = \{\phi_n(s,L) : (s,L)\in \mathcal{K}, n\in \N\}$ is called an ARC if for any other admissible collection $\psi = \{\psi_n(s,L) : (s,L)\in \mathcal{K}, n\in \N\}$, we have
+        \begin{itemize}
+            \item $[\psi\ll\phi]$ is contained in a $(\mathrm{dim}(\mathcal{K})-1)$--dimensional  manifold.
+            \item $[\psi\ggg\phi]$ contains an open subset of $\mathcal{K}$.
+        \end{itemize}
+    \end{definition}
+
+    \begin{remark}\upshape
+        In our context, where $\mathcal{K} = (0,\infty)^2$, we can grasp the essence of Definition~\ref{def:ARC} heuristically as follows: Given an admissible collection $\phi$, the set $[\psi\ll\phi]$ comprises collections $\psi$ exhibiting a superior rate of convergence compared to $\phi$. On the other hand, $[\psi\ggg\phi]$ encapsulates collections that suffer from a worse rate of convergence than all the multiplicative inverse gaps observed in $[\psi\ll\phi]$. Consequently, Definition~\ref{def:ARC} designates $\phi$ as an ARC if $[\psi\ll\phi]$, akin to an optimal frontier, manifests as $1$-dimensional. This implies that for a given $s$, the convergence rate of $\phi_n(s,L)$ cannot be enhanced. Conversely, the condition that $[\psi\ggg\phi]$ contains an open subset of $(0,\infty)^2$ suggests ample space for collections exhibiting sub-optimal convergence rates in comparison to $\phi$. To illustrate visually, envision $s$ along the $x$-axis and $L$ along the $y$-axis. It is shown in Theorem~\ref{thm:adaptivity.simple.domains} that on simple domains, if $\phi$ is an ARC, then the set $[\psi\ll\phi]$ is equal to the vertical line $\{s_0\} \times (0,\infty)$ for an appropriate $s_0 > 0$, and $[\psi\ggg\phi]$ corresponds to the half-space $(s_0,\infty) \times (0,\infty)$.
+    \end{remark}
+
+    Let us recall that the ARC is unique up to asymptotic order, i.e., if $\phi$ and $\psi$ are two ARCs then, for any $(s,L)\in \mathcal{K}$, we have
+    \begin{equation*}
+        \phi_n(s,L) \lesssim \psi_n(s,L)
+        \quad \text{and} \quad
+        \psi_n(s,L) \lesssim \phi_n(s,L).
+    \end{equation*}
+    Henceforth, we refer to an ARC as \textit{the} ARC using the above identification.
+    Further, note that if the collection of minimax rates $N = \{N_n(s,L) : (s,L)\in \mathcal{K}, n\in \N\}$ is admissible, then it is the ARC.
+
+
+\section{Statistical procedure}\label{sec:statistical.procedure}
+
+    In this section, we present a novel estimation procedure which is both simple to understand and completely free of any tuning parameters, thus eliminating the need for a sophisticated calibration step. The main idea behind our approach is to use polynomials of varying degrees to approximate the density function $f$ in different neighborhoods of $t$ and then to simultaneously select the optimal neighborhood and degree of approximation in a data-driven manner. Let us formalize this idea.
+
+\subsection{Local polynomial estimators}\label{sec:locpoly}
+
+    Our collection of local polynomial estimators will be indexed by a two-dimensional parameter
+    \begin{equation*}
+        \gamma = (m,h)\in \Gamma = \N_0\times (0,\rho],
+    \end{equation*}
+    where $m$ represents the degree of the polynomial and $h$ denotes the bandwidth, the latter of which determines the size of the neighborhoods.
+    Let $\1_A$ be the indicator function for any set $A\subseteq \R^d$.
+    Recall that $\Delta = [-1,1]^d$, and consider the kernel function
+    \begin{equation}\label{eq:K}
+        K(u) = \1_{\Delta}(u), \quad u\in \R^d.
+    \end{equation}
+    Note that the kernel $K$ does not have to be a density function. While other positive kernels could be used, we limit our study to this particular kernel for the sake of simplicity. Let us define the polynomial $p_{\gamma}$ as the solution to the following continuous kernel-weighted least-squares minimization problem:
+    \begin{equation*}
+        p_{\gamma} = \mathop{\mathrm{arg\,min}}_{p\in \mathcal{P}_{\!m}} \int_{\voisin(h)} \left\{f(t+u) - p(u)\right\}^2 w_h(u) \rd u,
+    \end{equation*}
+    where
+    \begin{equation}\label{eq:w.h}
+        w_h(u) = h^{-d} K(h^{-1} u) \1_{\domain}(t + u).
+    \end{equation}
+    Notice that the support of $w_h$ corresponds to the neighborhood $\voisin(h)$.
+    If we consider the weighted space $L^2(w_h)$ endowed with its natural inner product
+    \begin{equation*}
+        \langle g,\tilde{g} \rangle =\int_{\R^d} g(x) \tilde{g}(x) w_h(x) \rd x,
+    \end{equation*}
+    then the polynomial $p_{\gamma}$ can be interpreted as the orthogonal projection of the function $f(t+\cdot)$ onto the polynomial space $\mathcal{P}_{\!m}\subseteq L^2(w_h)$.
+    A simple combinatorial argument shows that the dimension $D_m$ of $\mathcal{P}_{\!m}$ is the number of $d$-combinations from a set of $m+d$ elements. For $\gamma=(m,h)\in \Gamma$, consider the collection of rescaled monomials
+    \begin{equation*}
+        \Phi_{\gamma}(u) = \left\{\varphi_{\alpha}\left(\frac{u}{h}\right)\right\}_{|\alpha|\leq m}
+    \end{equation*}
+    which we organize into a $D_m\times 1$ vector using the total order defined for $\alpha \neq \tilde{\alpha}$ by $\alpha \prec \tilde{\alpha}$ if and only if $|\alpha| < |\tilde{\alpha}|$, or $|\alpha|=|\tilde\alpha|$ and $\alpha_{i^{\star}} < \tilde{\alpha}_{i^{\star}}$ for $i^{\star} = \min(i\in \{1,\ldots,d\} : \alpha_i \neq \tilde{\alpha}_i)$.
+    Now that $\Phi_{\gamma}(u)$ is a vector function, define the $D_m\times D_m$ Gram matrix
+    \begin{equation}\label{eq:matrix.B.gamma}
+        \mathcal{B}_{\gamma} =\int_{\R^d} \Phi_{\gamma}(u) \Phi_{\gamma}^{\top}(u)w_h(u) \rd u.
+    \end{equation}
+    By virtue of Lemma~\lempositivedefinite in the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement}, the Gram matrix $\mathcal{B}_{\gamma}$ is symmetric positive definite, so its smallest eigenvalue
+    \begin{equation}\label{eq:lambda.gamma}
+        \lambda_{\gamma} = \min_{v^{\top} v = 1} v^{\top} \mathcal{B}_{\gamma} v
+    \end{equation}
+    must be positive. Letting $\mathcal{B}_{\gamma}^{1/2}$ be the lower triangular matrix in the Cholesky decomposition of $\mathcal{B}_{\gamma}$ leads to the following orthonormal basis for the $\smash{L^2(w_h)}$ space:
+    \begin{equation}\label{eq:orthogonalization}
+        H_{\gamma}(u) = \mathcal{B}_{\gamma}^{-1/2} \Phi_{\gamma}(u),
+        \quad u\in \R^d.
+    \end{equation}
+    If $a_{\gamma}$ denotes the $D_m\times 1$ coordinate vector of $p_{\gamma}$ in this orthonormal basis, then
+    \begin{equation*}
+        a_{\gamma}
+        = \langle f(t+\cdot), H_{\gamma} \rangle
+        = \EE \left\{H_{\gamma}(X-t) w_h(X-t)\right\}
+        \approx \frac{1}{n}\sum_{i=1}^n H_{\gamma}(X_i-t) w_h(X_i-t)
+        \eqqcolon \hat{a}_{\gamma}.
+    \end{equation*}
+    This leads to $\hat{p}_{\gamma}(u) = H_{\gamma}^{\top}(u) \hat{a}_{\gamma}$ being an estimator for $p_{\gamma}$.
+    Therefore, for any $\gamma = (m,h)\in \Gamma$, we define our local polynomial estimator as follows:
+    \begin{equation}\label{eq:hat.f.gamma}
+        \hat{f}_{\gamma}(t) = \hat{p}_{\gamma}(0) = \frac{1}{n} \sum_{i=1}^n H_{\gamma}^{\top}(0) H_{\gamma}(X_i-t) w_h(X_i-t).
+    \end{equation}
+
+\subsection{Selection procedure}\label{sec:selection-procedure}
+
+    The data-driven procedure selects a local polynomial estimator from a collection $\{\hat{f}_{\gamma}(t): \gamma\in \Gamma_{\!n}\}$, where $\Gamma_{\!n}$ is a discrete one-parameter subset of the pairs of polynomial degrees and bandwidths in $\Gamma$, see~\eqref{eq:Gamma.n} below.
+    For any $\ell\in \N$, set
+    \begin{equation}\label{eq:h.in.Gamma.n}
+        h_{\ell} = \rho\exp(-\ell),
+    \end{equation}
+    and let $\{m_{\ell} : \ell\in \N\}\subseteq \{0,1,\ldots,\lfloor\log n\rfloor\}$ be a nonincreasing sequence of integers. These choices put approximately $\log n$ bandwidth levels on a logarithmic scale down to a smallest neighborhood of radius at least $\rho n^{-1}$ asymptotically. Consider the set of indexed pairs
+    \begin{equation}\label{eq:Gamma.n}
+        \Gamma_{\!n} = \{(m_{\ell}, h_{\ell}) : \ell\in \mathcal{L}_n\}\subseteq \Gamma,
+    \end{equation}
+    where
+    \begin{equation}\label{eq:L.n.W.h}
+        \mathcal{L}_n = \big\{1 \leq \ell \leq \lfloor\log n\rfloor : n h^d_{\ell} W_{h_{\ell}}\geq (\log n)^3\big\}
+        \quad \text{with} \quad
+        W_h =\int_{\R^d} w_h(u) \rd u.
+    \end{equation}
+    To provide clarity for the selection process, we introduce certain observables.
+    Specifically, for each $\gamma=(m,h)\in \Gamma_{\!n}$, the quantity
+    \begin{equation}\label{eq:hat.v.gamma}
+        \hat{v}_{\gamma} = \frac{1}{n} \times \frac{1}{n} \sum_{i=1}^n \left\{H_{\gamma}^{\top}(0) H_{\gamma}(X_i-t) w_h(X_i-t)\right\}^2
+    \end{equation}
+    is an estimator of a natural upper bound on the variance of $\hat{f}_{\gamma}(t)$.
+    Also, for some fixed constant $\delta > 1$, and the pairs $\gamma=(m,h)\in \Gamma_{\!n}$ and $(v,x)\in [0,\infty)^2$, define
+    \begin{equation}\label{eq:c.gamma}
+        c_{\gamma} = \frac{\sqrt{D_m}}{n h^d \lambda_{\gamma}},
+        \qquad
+        \varepsilon_{\gamma} = \frac{(\delta-1) D_m W_h}{n h^d \lambda_{\gamma}^2},
+        \qquad
+        \Lambda_{\gamma} = 2 \, \lvert\log(\lambda_{\gamma})\rvert,
+    \end{equation}
+    and
+    \begin{equation}\label{eq:r.gamma.and.pen.gamma}
+        r_{\gamma}(v,x) = \sqrt{2vx} + c_{\gamma} x,
+        \qquad
+        \mathrm{pen}(\gamma) = d\delta\lvert\log h\rvert + \Lambda_{\gamma}.
+    \end{equation}
+    Equipped with these notations, consider an upper bound estimator of the bias of $\hat{f}_{\gamma}(t)$, i.e.,
+    \begin{equation}\label{eq:hat.A.gamma}
+        \hat{A}_{\gamma} = \max_{\gamma'\in \Gamma_{\!n}} \left\{\left|\hat{f}_{\gamma\vee\gamma'}(t) - \hat{f}_{\gamma'}(t)\right| - \hat{\mathbb{U}}_{\gamma\vee\gamma'} - \hat{\mathbb{U}}_{\gamma'}\right\}_+,
+    \end{equation}
+    where $(\cdot)_+ = \max\{\cdot \, ,0\}$ and $\gamma\vee\gamma'$ denotes the maximum of $\gamma=(m_{\ell},h_{\ell})$ and $\gamma'=(m_{\ell'},h_{\ell'})$ with respect to the total order $\preceq$ defined on $\Gamma_{\!n}$ by $\gamma\preceq\gamma'$ if $h_{\ell} \leq h_{\ell'}$ (i.e., if $\ell\geq \ell'$).
+    Moreover, consider a penalized version of the estimator of an upper bound on the standard deviation estimator of $\hat{f}_{\gamma}(t)$,
+    \begin{equation}\label{eq:hat.U.gamma}
+        \hat{\mathbb{U}}_{\gamma} = r_{\gamma}\left\{\hat{v}_{\gamma} +\varepsilon_{\gamma}, \mathrm{pen}(\gamma)\right\}.
+    \end{equation}
+    The final adaptive estimator is then defined by
+    \begin{equation}\label{eq:selection.rule}
+        \hat{f}(t) = \hat{f}_{\hat{\gamma}}(t),
+        \quad \text{where} \quad
+        \hat{\gamma} = \mathop{\mathrm{arg\,min}}_{\gamma\in \Gamma_{\!n}} \big(\hat{A}_{\gamma} + \hat{\mathbb{U}}_{\gamma}\big).
+    \end{equation}
+
+    \begin{remark}\upshape
+        Before we state our main results in Section~\ref{sec:main.results}, it is worthwhile to first discuss a few points that are particularly relevant:
+        \begin{enumerate}
+            \item The selection rule~\eqref{eq:selection.rule} is inspired by the so-called Goldenshluger-Lepski method introduced in a series of papers, see \cite{Lepski1991adaptive} and \cite{GoldenshlugerLepski2008,GoldenshlugerLepski2009,GoldenshlugerLepski2011,GoldenshlugerLepski2014}. It consists of a trade-off between the bias upper bound estimators $\hat{A}_{\gamma}$ and the penalized standard deviation upper bound estimators $\hat{\mathbb{U}}_{\gamma}$. Finding tight upper variables $\hat{\mathbb{U}}_{\gamma}$ is the key point of this selection procedure. Ideally, we would like to choose
+                \begin{equation}\label{eq:U.gamma}
+                    \mathbb{U}_{\gamma} = r_{\gamma}\{v_{\gamma},\mathrm{pen}(\gamma)\},
+                \end{equation}
+                where the counterpart of $\hat{v}_{\gamma}$ in~\eqref{eq:hat.v.gamma}, namely
+                \begin{equation}\label{eq:v.gamma}
+                    v_{\gamma} = \frac{1}{n} \times \EE\left[\left\{H_{\gamma}^{\top}(0)H_{\gamma}(X-t) w_h(X-t)\right\}^2\right],
+                \end{equation}
+                is a natural upper bound on the true variance of $\hat{f}_{\gamma}(t)$.
+            \item The form of $\mathbb{U}_{\gamma}$ can be easily explained. The function $r_{\gamma}$ in~\eqref{eq:r.gamma.and.pen.gamma} is used to apply a Bernstein inequality to control the bias term $\hat{A}_{\gamma}$, see Lemma~\lemBernsteinone and its proof for details in the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement}. The penalty $\mathrm{pen}(\gamma)$ consists of two terms: the $\lvert\log h\rvert$-term is unavoidable in pointwise adaptive estimation (see \cite{Lepski1991adaptive}) while the quantity $\Lambda_{\gamma}$, which adapts to the geometry of the domain $\domain$, is specific to our framework. To define $\hat{\mathbb{U}}_{\gamma}$, the variance bound $v_{\gamma}$ is replaced by its estimator $\hat{v}_{\gamma}$ and the correction term $\varepsilon_{\gamma}$ is added to ensure that, with large probability, $\hat{\mathbb{U}}_{\gamma}$ becomes larger than $\mathbb{U}_{\gamma}$ while staying close to it.
+            \item The Goldenshluger-Lepski method is generally defined using an order on $\Gamma_{\!n}$ which is, roughly speaking, induced by the variance of the estimators $\hat{f}_{\gamma}(t)$. This explains the definition of the total order $\gamma\preceq\gamma'$ stated just below \eqref{eq:hat.A.gamma}, which involves only the bandwidth $h$ in the comparison of the parameter pairs $(m,h)$ in $\Gamma_{\!n}$.
+        \end{enumerate}
+    \end{remark}
+
+
+\section{Main results}\label{sec:main.results}
+
+    Our main results are presented in three steps. First, in Section~\ref{sec:general.results}, we obtain bounds on the bias and variance of the base local polynomial estimators $\hat{f}_{\gamma}(t)$ defined in \eqref{eq:hat.f.gamma}, and we formulate an oracle-type inequality satisfied by the adaptive estimator $\hat{f}(t)$ defined in \eqref{eq:selection.rule}. Next, in Section~\ref{sec:simple.domain}, we focus on the most common case, where the geometry of $\domain$ is `simple' in a neighborhood of $t$, meaning that Assumption~\ref{ass:1} is satisfied. In this situation, the minimax and adaptive rates of convergence are established over the whole collection of H\"older-type functional classes $\{\Sigma(s,L) : (s,L)\in (0,\infty)^2\}$. In Section~\ref{sec:complicated.domain}, we consider a specific situation where the domain $\domain$ has a more complicated geometry. To aid understanding, the results are specifically stated for polynomial sectors. We obtain upper bounds on the rate of convergence in each class $\Sigma(s,L)$, which depend on the geometry of $\domain$, and we prove that, for small regularities $s$, these rates of convergence are minimax. Analogous adaptivity results are also derived. Finally, in Section~\ref{sec:unknown.domains}, the case of unknown compact convex domains is briefly discussed.
+
+\subsection{General results}\label{sec:general.results}
+
+    Our first two results pertain to the study of the bias and variance of each estimator in the collection $\{\hat{f}_{\gamma}(t) : \gamma\in \Gamma\}$. The proofs of these propositions are postponed to the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement}.
+
+    \begin{proposition}[Bound on the bias]\label{prop:control.bias}
+        Let $\gamma=(m,h)\in \Gamma$ be given.
+        Assume that the density function $f:\domain\to\R$ belongs to the class $\Sigma(s,L)$ for some positive $s$ and $L$. Then, there exists a positive real constant $\mathfrak{L}_{m,s,L}$  that depends on $m$, $s$ and $L$ such that
+        \begin{equation}\label{eq:bias.bound}
+            \left|\EE\left\{\hat{f}_{\gamma}(t)\right\} - f(t)\right|
+            \leq \frac{W_h\sqrt{D_m}}{\lambda_{\gamma}} \times \mathfrak{L}_{m,s,L} \, h^{\beta_m(s)},
+        \end{equation}
+        where $\beta_m(s) = \min(m+1, s)$.
+        Moreover, we have $\mathfrak{L}_{m,s,L} = L$ as soon as $m\geq\llfloor s \rrfloor$.
+    \end{proposition}
+
+    \begin{proposition}[Bound on the variance]\label{prop:control.stochastic.term}
+        Let $\gamma=(m,h)\in \Gamma$ be given.
+        Assume that the density function $f:\domain\to\R$ satisfies
+        \begin{equation}\label{eq:f.bounded}
+            \finfty \coloneqq \sup_{u\in \voisin(\rho)} \lvert f(t+u) \rvert <\infty.
+        \end{equation}
+        Also, recall the definition of $v_{\gamma}$ from \eqref{eq:v.gamma}. Then, we have
+        \begin{equation}\label{eq:variance.bound}
+            \Var\left\{\hat{f}_{\gamma}(t)\right\}
+            \leq v_{\gamma}
+            \leq v_{\gamma}^{\star},
+            \quad \text{with} \quad
+            v_{\gamma}^{\star} = \left(\frac{W_h\sqrt{D_m}}{\lambda_{\gamma}}\right)^2 \times \frac{\finfty}{n h^d W_h}.
+        \end{equation}
+    \end{proposition}
+
+    Let us highlight that both the bias bound~\eqref{eq:bias.bound} and the variance bound~\eqref{eq:variance.bound} can be broken down into two separate factors. The second factors, which are proportional to $h^{\beta_m(s)}$ and $1 / (n h^d W_h)$, can be readily explained as they correspond (up to a constant) to the bias and variance bounds of multivariate histograms with adaptive bin shapes. These histograms are defined as $\hat{p}_{\mathcal{B}} = \sum_{i=1}^n \1_{\mathcal{B}}(X_i)/\{n\mathrm{Leb}(\mathcal{B})\}$ on each multivariate bin $\mathcal{B}$ belonging to a partition of $\domain$, as documented for example by \cite{Klemala2009}. Specifically, when considering the bin $\mathcal{B} = \domain\cap(t+h\Delta)$, it is straightforward to show that the bias and the variance are proportional to $h^{\beta_m(s)}$ and $1 / (n h^d W_h)$, respectively, just as we would with our estimator when the polynomial degree is set to $m=0$. Notice however that in general the first factors introduce an additional quantity, the ratio $W_h / \lambda_{\gamma}$, which is not usually present and depends on the geometry of the domain $\domain$. In the case of simple domains, which are treated in Section~\ref{sec:simple.domain}, the ratio $W_h / \lambda_{\gamma}$ remains asymptotically bounded, thereby exerting no influence on the bias/variance analysis.
+
+    In the case of complicated domains, which are treated in Section~\ref{sec:complicated.domain}, we know that the ratio $ W_h / \lambda_{\gamma} $ encodes the complexity of the domain in some way. Unfortunately, we do not have a heuristic interpretation that would let us guess its asymptotic behavior in the variable $n$ (or $h$) in general. This remains an open problem. However, in the specific case of the polynomial sectors $\mathcal{D}_k$ covered in Section~\ref{sec:complicated.domain}, we do have a (potential) interpretation based on the calculations in Equations~(7.25), (7.26) and (7.27) of the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement}. Indeed, the quantity $W_h$ is the area of the domain at the scale of the bandwidth parameter, so the specific result $W_h = h^{k-1}/(k+1)$ in (7.25) gives a `unit' of the pointiness of the polynomial sectors. Equations~(7.26) and (7.27) then show that each degree of a polynomial in our basis can capture one such unit. Since there are two dimensions and the polynomials in our space have degree at most $m$ (recall that $\gamma = (m,h)$), we are left with $W_h / \lambda_{\gamma_k}$ being asymptotic to $\smash{h^{-(k-1)\times 2m}}$, where $\gamma_k \equiv \gamma$ is the notation tailored to the polynomial sector $\domain_k$. One could therefore interpret $\smash{h^{(k-1)\times 2m}}$ as the finest amount of pointiness that our polynomial basis can model. The finer the pointiness of the domain, the bigger the bias and variance become in Propositions~\ref{prop:control.bias}~and~\ref{prop:control.stochastic.term}.
+
+    For the forthcoming minimax and adaptive results in Sections~\ref{sec:simple.domain}~and~\ref{sec:complicated.domain}, it is also worth noting that Lemma~\leminftynormf in the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement} implies that $\finfty$ remains uniformly bounded over $f\in \Sigma(s,L)$ in the variance bound \eqref{eq:variance.bound}.
+
+    The main result of this section is an oracle-type inequality which provides an explicit asymptotic bound for the pointwise $L^2$ risk of our adaptive estimator $\hat{f}(t)$.
+
+    \begin{theorem}[Oracle-type inequality]\label{thm:oracle.result}
+        Assume that the density function $f:\domain\to\R$ satisfies~\eqref{eq:f.bounded}. Assume further that the domain $\domain$ satisfies the following property: there exists a positive real constant $b\in (0,\infty)$ such that
+        \begin{equation}\label{eq:domain.lambda}
+            \min_{\gamma=(m,h)\in \Gamma_{\!n}} (h^m)^{-b} \lambda_{\gamma} \geq 1.
+        \end{equation}
+        Define, for any $\gamma\in \Gamma_{\!n}$,
+        \begin{equation}\label{eq:B.gamma.and.U.star.gamma}
+            \mathbb{B}_{\gamma} = \max_{\substack{\gamma'\in \Gamma_{\!n} \\ \gamma' \preceq \gamma}} \left|\EE\left\{\hat{f}_{\gamma'}(t)\right\} - f(t)\right|,
+            \quad \text{and} \quad
+            \mathbb{U}_{\gamma}^{\star} = r_{\gamma}\{v_{\gamma}^{\star}, \mathrm{pen}(\gamma)\},
+        \end{equation}
+        where recall $v_{\gamma}^{\star}$ is the bound on the variance in~\eqref{eq:variance.bound}, and the quantities $r_{\gamma}(\cdot,\cdot)$ and $\mathrm{pen}(\cdot)$ are defined in~\eqref{eq:r.gamma.and.pen.gamma}. Recall also that $\delta > 1$ is a parameter that we fixed above~\eqref{eq:r.gamma.and.pen.gamma}. Then, we have
+        \begin{equation}\label{eq:thm:oracle.result.to.prove}
+            \pwrisk(\hat{f}, f)
+            \leq \min_{\gamma\in \Gamma_{\!n}} \left[5 \mathbb{B}_{\gamma} + \left\{3 + 2 \sqrt{(\delta-1) / \finfty}\right\} \mathbb{U}_{\gamma}^{\star}\right] + \mathcal{O}\left\{\sqrt\frac{(\log n)^d}{n}\right\}.
+        \end{equation}
+        The notation $u_n = \mathcal{O}(v_n)$ here means that $\limsup_{n\to\infty} |u_n / v_n| < \infty$.
+    \end{theorem}
+
+    \begin{remark}\upshape
+        On domains with simple geometries, which are characterized by Assumption~\ref{ass:1} below, the technical condition~\eqref{eq:domain.lambda} in Theorem~\ref{thm:oracle.result} is automatically satisfied when $m$ is constrained to a finite set of values, a situation often encountered in practical scenarios where the target density has a finite smoothness parameter $s$. This assertion is demonstrated in Lemma~\lemusualbehavior in the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement}; see also the first paragraph in the proof of Theorem~\ref{thm:adaptivity.simple.domains}. However, on domains with complicated geometries, verifying the technical condition~\eqref{eq:domain.lambda} becomes a case-by-case endeavor. For instance, in the polynomial sector example detailed in Section~\ref{sec:complicated.domain}, explicit verification is provided within the proof of Theorem~\ref{thm:adaptivity.polynomial.sectors} to establish the adaptivity of our estimator.
+    \end{remark}
+
+\subsection{Domains with simple geometries}\label{sec:simple.domain}
+
+    Below, we introduce an assumption that qualifies what it means for a domain $\domain$ to be geometrically `simple' in a neighborhood of $t$.
+    \begin{assumption}\label{ass:1}
+        There exists an open subset $\Delta_0\subseteq \Delta \equiv [-1,1]^d$ such that
+        \begin{equation*}
+            h \Delta_0\subseteq \voisin(h), \quad \text{for all } h \in (0,\rho].
+        \end{equation*}
+    \end{assumption}
+    This assumption is satisfied for example if $\voisin(h)$ is star-shaped with respect to the origin and has a non-empty interior. Assumption~\ref{ass:1} is a relaxation of Assumption~5 in Section~2.2 of \cite{Bertin_et_al2020}, which stipulates that there exists a finite set of linear transformations of determinant $1$ such that for a hypercube $[0,r]^d$ of a small enough width $r$, you can, for any point $t\in \domain$, choose a linear transformation in the finite set so that the linearly transformed hypercube (i.e., a rotated parallelotope) fits into $\domain - t$. Assumption~\ref{ass:1} above is weaker because we could simply take $\Delta_0$ to be a small enough open cone contained in the rotated parallelotope that fits into $\domain - t$.
+
+    Under Assumption~\ref{ass:1}, Proposition~\ref{prop:minimaxity.simple.domains} below establishes that our local polynomial estimator $\hat{f}_{\gamma}(t)$ achieves the minimax rate of convergence over each individual class $\Sigma(s,L)$. Similarly, Theorem~\ref{thm:adaptivity.simple.domains} proves that our adaptive statistical procedure $\hat{f}(t)$ attains the ARC over the whole collection $\{\Sigma(s,L) : (s,L)\in (0,\infty)^2\}$. The ARC here corresponds to the minimax rate of convergence up to a logarithmic factor.
+
+    \begin{proposition}[Minimaxity of $\hat{f}_{\gamma}(t)$ on simple domains]\label{prop:minimaxity.simple.domains}
+        Suppose that Assumption~\ref{ass:1} holds.
+        Let $(s,L)\in (0,\infty)^2$ be given.
+        Let $\gamma = (m,h)\in \Gamma$ be such that
+        \begin{equation}\label{eq:def-gamma-minimax-usual}
+            m = \llfloor s \rrfloor
+            \quad \text{and} \quad
+            h = \left[\frac{1}{2s \mathfrak{L}_{\llfloor s \rrfloor,s,L}^2} \times \frac{d \, \mathfrak{F}_{s,L}}{2^d \, n}\right]^{1/(2s+d)},
+        \end{equation}
+        where $\mathfrak{L}_{m,s,L}$ is a positive real constant that appears in the bias upper bound in Proposition~\ref{prop:control.bias}, and $\mathfrak{F}_{s,L}$ is any upper bound on $\sup_{f\in \Sigma(s,L)} \finfty$ (the existence of which is guaranteed by Lemma~\leminftynormf in the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement}).
+        If we set
+        \begin{equation}\label{eq:N.n}
+            N_n(s,L) =  n^{-s/(2s+d)},
+        \end{equation}
+        then the following assertions hold:
+        \begin{enumerate}
+            \item $\{N_n(s,L) : n\in \N\}$ is the minimax rate of convergence over $\Sigma(s,L)$.
+            \item The estimator $\hat{f}_{\gamma}(t)$ attains this rate of convergence. More precisely, for $n$ large enough, we have
+            \begin{equation*}
+                N_n^{-1}(s,L)\sup_{f\in \Sigma(s,L)}
+                \pwrisk(\hat{f}_{\gamma}, f)
+                \leq
+                C(s,L),
+            \end{equation*}
+            where the right-hand is defined by the positive real constant
+            \begin{equation}\label{eq:C.s.L}
+                C(s,L) = \frac{2^d \sqrt{D_m}}{\lambda_{\star}(m)} \sqrt{\left(\frac{d}{2s} + 1\right) \left(\frac{2s}{4^s d}\right)^{d/(2s+d)}} \mathfrak{F}_{s,L}^{s/(2s+d)} (\mathfrak{L}_{\llfloor s \rrfloor,s,L})^{d/(2s+d)}
+            \end{equation}
+            and $\lambda_{\star}(m) > 0$ is a lower bound found in Lemma~\lemusualbehavior in the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement} on the smallest eigenvalue $\lambda_{\gamma}$ of the Gram matrix $\mathcal{B}_{\gamma}$.
+        \end{enumerate}
+    \end{proposition}
+
+    \begin{remark}\upshape
+        Understanding the optimal parameters in \eqref{eq:def-gamma-minimax-usual} unfolds as follows. On simple domains, which are characterized by Assumption~\ref{ass:1}, it turns out that for a finite $m$, the ratios $W_h / \lambda_{\gamma}$ in Proposition~\ref{prop:control.bias}~and~\ref{prop:control.stochastic.term} remain uniformly bounded in the variable~$h$. Therefore, the bound on the bias \eqref{eq:bias.bound} depends on the smoothness parameter~$m$ asymptotically only through the factor $h^{\beta_m(s)}$, since $D_m$ and $\mathfrak{L}_{m,s,L}$ are constants for a finite $m$. By the same argument, the bound on the variance \eqref{eq:variance.bound} is not affected asymptotically by the choice of $m$. Therefore, given the decomposition of the squared risk measure as the sum between the squared bias and the variance of the estimator, recall Remark~\ref{rem:decomposition}, it becomes clear that the optimal choice of $m$ in this case will minimize $h^{\beta_m(s)} \equiv h^{\min(m+1,s)}$, which happens when $m\geq \llfloor s \rrfloor$. Since the rate $h^{\beta_m(s)}$ does not improve for larger $m\geq\llfloor s \rrfloor$ and $D_m$ increases with $m$, the optimal choice of $m$ for our pointwise $L^2$ risk measure is necessarily the smallest $m$ that satisfies $m\geq \llfloor s \rrfloor$, namely $m = \llfloor s \rrfloor$. Once the optimal $m = \llfloor s \rrfloor$ is selected, the optimization of the bandwidth $h$ is analogous to the approach employed for classical kernel density estimators.
+
+        Heuristically, our local polynomial estimator wants to adapt its smoothness level $m$ to the smoothness level $s$ of the target density. The information of the target density is utilized optimally when $m$ is the largest integer which is smaller than $s$ and leaves room for a positive H\"older exponent in Definition~\ref{def:Sigma.s.L}. That value is necessarily $m = \llfloor s \rrfloor$. In particular, if the practitioner decides to fix a suboptimal value, say $m = 0$ when $s > 1$, and then optimize over $h$, the bias term in Proposition~\ref{prop:control.bias} will simply not have the smallest rate of convergence possible.
+
+        On complicated domains, the optimization in $h$ is more subtle since the ratio $W_h / \lambda_{\gamma}$ has to be taken into account, which requires a case-by-case analysis; see, e.g., Proposition~\ref{prop:minimaxity.polynomial.sectors} and its proof.
+    \end{remark}
+
+    In Section~\ref{sec:selection-procedure}, we have constructed several statistical procedures depending on the choice of the discrete collection of polynomial degrees $\{m_{\ell} : \ell\in \N\}$. For the next result, we fix this collection by choosing
+    \begin{equation}\label{eq:m.l}
+        m_{\ell} = \left\lfloor\frac{\log n}{2\ell}\right\rfloor, \quad \ell\in \N.
+    \end{equation}
+
+    \begin{theorem}[Adaptivity of $\hat{f}(t)$ on simple domains]\label{thm:adaptivity.simple.domains}
+        Suppose that Assumption~\ref{ass:1} holds.
+        Let $\mathcal{K} = (0,\infty)^2$ and consider the set of H\"older-type functional classes $\{\Sigma(s,L) : (s,L)\in \mathcal{K}\}$.
+        The following assertions hold:
+        \begin{enumerate}
+            \item The ARC is the admissible collection $\phi$ given by
+                \begin{equation}\label{eq:ARC.simple.geometry}
+                    \phi_n(s,L) = \left(\frac{\log n}{n}\right)^{s/(2s+d)},
+                    \quad (s,L)\in \mathcal{K}, ~~n\in \N.
+                \end{equation}
+                More precisely, if $\psi$ is another admissible collection of normalizations such that $(s_0,L_0)$ belongs to $[\psi\ll \phi]$, then
+                \begin{equation*}
+                    [\psi\ll \phi]\subseteq \{s_0\} \times (0,\infty)
+                    \quad \text{and} \quad
+                    [\psi\ggg \phi]\supseteq  (s_0,\infty) \times (0,\infty).
+                \end{equation*}
+            \item The adaptive estimator $\hat{f}(t)$ is such that, for any $(s,L)\in \mathcal{K}$,
+                \begin{equation*}
+                    \begin{aligned}
+                        &\limsup_{n\to\infty} \sup_{f\in \Sigma(s,L)} \phi_n^{-1}(s,L) \pwrisk(\hat{f}, f) \\[-2mm]
+                        &~~\leq C \, \left[4 + \big\{(\delta-1) / \finfty\big\}^{1/2}\right] \, e^s \, \frac{2^d \sqrt{D^{\star}(s,d)}}{\lambda_{\bullet}(s,d)} \sqrt{d \, \delta} \, \, \mathfrak{F}_{s,L}^{~s/(2s+d)} (\mathfrak{L}_{s,L}^{\star})^{d/(2s+d)},
+                    \end{aligned}
+                \end{equation*}
+                where $C > 0$ is a universal constant (independent of all parameters), $\delta > 1$ is a parameter that we fixed above~\eqref{eq:r.gamma.and.pen.gamma}, $\mathfrak{F}_{s,L}$ is any upper bound on $\sup_{f\in \Sigma(s,L)} \finfty$ (the existence of which is guaranteed by Lemma~\leminftynormf in the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement}), and
+                \begin{equation*}
+                    \begin{aligned}
+                        &D^{\star}(s,d) = \max_{0 \leq m' \leq \lfloor 2s+d \rfloor} D_{m'} \quad (\text{recall that } D_{m'} = \binom{m'+d}{d}) \\
+                        &\lambda_{\bullet}(s,d) = \min_{0\leq m' \leq \lfloor 2s+d \rfloor} \lambda_{\star}(m) > 0, \\
+                        &\mathfrak{L}_{s,L}^{\star} = \max_{0\leq m' \leq \lfloor 2s+d \rfloor} \mathfrak{L}_{m',s,L}.
+                    \end{aligned}
+                \end{equation*}
+                Note that the positivity of $\lambda_{\bullet}(s,d)$ is guaranteed by Lemma~\lemusualbehavior in the Supplementary Material \citep{BertinKlutchnikoffOuimet2024supplement}.
+        \end{enumerate}
+    \end{theorem}
+
+\subsection{Domains with complicated geometries}\label{sec:complicated.domain}
+
+    Set $\rho=1$ and define the following polynomial sectors in $\R^2$:
+    \begin{equation}\label{eq:domain.k}
+        \domain_k = \big\{(x,y)\in \R^2 : 0\leq x \leq 1, 0\leq y \leq x^k\big\}, \quad k > 1.
+    \end{equation}
+    % As an example, the domain $\domain_{3/2}$ is illustrated in Figure~\ref{fig:drawing.polynomial.domain}.
+    This section is dedicated to the local estimation, at the origin $t=(0,0)$, of density functions supported on a given polynomial sector domain $\domain_k$.
+    In particular, we obtain minimaxity and adaptivity results similar to those in Section~\ref{sec:simple.domain} but on the complicated domain $\domain_k$, see Proposition~\ref{prop:minimaxity.polynomial.sectors}~and~Theorem~\ref{thm:adaptivity.polynomial.sectors}, respectively.
+
+    Item~2 of Remark~\ref{rem:other.complicated.domains} below explains how our results could be extended to other complicated domains without much difficulty. We believe that treating these polynomial sector examples separately elucidates the overall arguments and techniques and thus provides greater clarity for the reader. Furthermore, our statements here complement the simulations presented in Section~\ref{sec:simulations}, which are also performed on polynomial sectors.
+
+    \begin{proposition}[Minimaxity of $\hat{f}_{\gamma}(t)$ on \texorpdfstring{$\domain_k$}{D\_k}]\label{prop:minimaxity.polynomial.sectors}
+        Let $(s,L)\in (0,\infty)^2$ be given. Define
+        \begin{equation}\label{eq:s.k.and.theta.k}
+            s_k = \mathop{\mathrm{arg\,max}}_{\beta\in (0,s]} \theta_k(\beta),
+            \quad \text{where} \quad
+            \theta_k(\beta) = \frac{\beta-2\llfloor\beta\rrfloor(k-1)}{2\beta+k+1}.
+        \end{equation}
+        The following assertions hold:
+        \begin{enumerate}
+            \item There exists a positive real constant $C(s,L,k)$  such that, for any $f\in \Sigma(s,L)$, we have
+                \begin{equation}\label{eq:rebroussement.upper.bound}
+                    R_n(\hat{f}_{\gamma_k}, f)\leq C(s,L,k) n^{-\theta_k(s_k)},
+                \end{equation}
+                where $\gamma_k=(m,h)$ with $m=\llfloor s_k\rrfloor$ and $h=n^{-1/(2s_k+k+1)}$.
+            \item Assume further that $s\in (0,1]$, then there exists a positive real constant $c(s,L,k)$ such that
+                \begin{equation}\label{eq:rebroussement.lower.bound}
+                 \inf_{\tilde{f}}\sup_{f\in \Sigma(s,L)} R_n(\tilde{f}, f)\geq c(s,L,k) n^{-\theta_k(s)}.
+                \end{equation}
+                In particular, $\{n^{-s/(2s+k+1)} : n\in \N\}$ is the minimax rate of convergence on $\Sigma(s,L)$ as soon as $s\in (0,1]$; refer to Item~1 of Remark~\ref{rem:other.complicated.domains} below.
+        \end{enumerate}
+    \end{proposition}
+
+    \newpage
+    \begin{remark}\label{rem:other.complicated.domains}\upshape
+        Let us make two comments:
+        \begin{enumerate}
+            \item Through the upper bound~\eqref{eq:rebroussement.upper.bound}, Proposition~\ref{prop:minimaxity.polynomial.sectors} shows that the estimator is consistent as soon as $\theta_k(s_k)>0$. This is always the case since, for any $\beta\in (0,\min(s,1)]$, we have $\theta_k(\beta) = \beta/(2\beta+k+1) >0$. Using similar arguments, it is easily seen that for any $s\in (0,1]$ and any $k>1$, we have $s_k = s$. However, for $k>2$ and $s>1$, we always have $s-2\llfloor s \rrfloor(k-1) < 0$, which implies $s_k = 1 < s$. Moreover, note that, for any $s>0$ and any $k>1$, we have
+                \begin{equation*}
+                    \theta_k(s_k) < \frac{s}{2s+2}.
+                \end{equation*}
+                Thus, the rate of convergence established in Proposition~\ref{prop:minimaxity.polynomial.sectors} is smaller compared with the one established for simple domains in Proposition~\ref{prop:minimaxity.simple.domains}. The estimation problem considered in the present section is more difficult because of the local pinch of $\domain_k$ near the origin.
+            \item Results analogous to those of Proposition~\ref{prop:minimaxity.polynomial.sectors} can be obtained for other domains $\domain$ with complicated geometries.
+                In particular, for $\alpha,\beta\in \mathbb{N}_0^d$ and $h>0$, define
+                \begin{equation*}
+                    I_{\domain}(\alpha,\beta,h)=\int_{\R^d} \varphi_{\alpha}\left(\frac{u}{h}\right)\varphi_{\beta}\left(\frac{u}{h}\right)w_h(u) \rd u.
+                \end{equation*}
+                Assume that there exist a function $a:\mathbb{N}_0^d\to (0,\infty)$ and an increasing function $G:\mathbb{N}_0^d\to (0,\infty)$ such that
+                \begin{equation*}
+                    I_{\domain}(\alpha,\beta,h)=a(\alpha+\beta)h^{G(\alpha+\beta)}, \quad \text{for any $\alpha,\beta\in \mathbb{N}_0^d$.}
+                \end{equation*}
+                Now define
+                \begin{equation*}
+                    s_{\domain} = \mathop{\mathrm{arg\,max}}_{\beta\in (0,s]} \theta_{\domain}(\beta),
+                    \quad \text{where} \quad
+                    \theta_{\domain}(\beta) = \frac{\beta+G(0)-G(2\llfloor\beta\rrfloor)}{2\beta+d+G(0)}.
+                \end{equation*}
+                In this particular setting, it is possible to derive a result akin to~\eqref{eq:rebroussement.upper.bound}, with the rate of convergence $n^{-\theta(s_{\domain})}$ and the bandwidth $h=n^{-1/\{2s_{\domain}+d+G(0)\}}$, by following the proof of Proposition~\ref{prop:minimaxity.polynomial.sectors}.
+        \end{enumerate}
+    \end{remark}
+
+    Now consider the adaptive estimator $\hat{f}(t)$ constructed in Section~\ref{sec:selection-procedure} and choose $m_{\ell}=0$ for all $\ell\in \N$. The following theorem ensures that it attains the ARC over the collection of H\"older-type functional classes $\{\Sigma(s,L) : (s,L)\in (0,1]\times(0,\infty)\}$. The ARC here corresponds to the minimax rate of convergence stated just below \eqref{eq:rebroussement.lower.bound} up to a logarithmic factor.
+
+    \begin{theorem}[Adaptivity of $\hat{f}(t)$ on \texorpdfstring{$\domain_k$}{D\_k}]\label{thm:adaptivity.polynomial.sectors}
+        The following assertions hold:
+        \begin{enumerate}
+            \item The ARC is the admissible collection $\phi$ given by
+                \begin{equation*}
+                    \phi_n(s,L) = \left(\frac{\log n}{n}\right)^{s/(2s+k+1)},
+                    \quad (s,L)\in (0,1]\times(0,\infty), ~~n\in \N.
+                \end{equation*}
+            \item
+                Let $(s,L)\in (0,1] \times (0,\infty)$ be given.
+                There exists a positive real constant $\tilde{C}(s,L,k,\delta) > 0$ such that
+                \begin{equation} \label{eq:rate.rebrou.adapt}
+                    \limsup_{n\to\infty} \sup_{f\in \Sigma(s,L)} \left(\frac{\log n}{n}\right)^{-s/(2s+k+1)} R(\hat{f}, f)
+                    \leq \tilde{C}(s,L,k,\delta).
+                \end{equation}
+        \end{enumerate}
+    \end{theorem}
+
+    \begin{remark}\upshape
+        Theorem~\ref{thm:adaptivity.polynomial.sectors} exclusively studies the case of a smoothness parameter $s$ less than or equal to $1$.
+        We conjecture that a result similar to~\eqref{eq:rate.rebrou.adapt}, with rate of convergence $(n^{-1} \log n)^{\theta_k(s_k)}$, can be obtained for any $s>1$ by choosing
+        \begin{equation*}
+            m_\ell = \left\lfloor \frac{\log n}{2\ell}-\frac{k+1}{2}\right\rfloor.
+        \end{equation*}
+        Nevertheless, this rate of convergence may be not the ARC for $s > 1$.
+    \end{remark}
+
+\subsection{Extension to unknown domains}\label{sec:unknown.domains}
+
+    Although the general problem of constructing optimal estimators in this setting is beyond the scope of this paper, we propose to consider a simple but common situation: assume that the support $\domain$ is an unknown compact convex set with finite Lebesgue measure $\lambda(\domain)$, and assume further that the target density $f$ is bounded, i.e., its supremum norm over $\R^d$, $\|f\|_{\infty}$, is finite. In order to control the error related to the estimation of the support, we have to consider an integrated risk (over $\R^d$) rather than a pointwise risk. That is, for any estimator $\tilde{f}$ of $f$, we are interested in bounding the $L^1$ integrated risk
+    \begin{equation*}
+        {IR}_n(\tilde{f}, f) = \EE\left\{\int_{\R^d} |\tilde{f}(x) - f(x)| \rd x\right\}.
+    \end{equation*}
+
+    We propose to estimate $f$ by splitting the data into two disjoint subsamples: we estimate the support of $f$ using the first subsample and then use our adaptive estimation procedure on the second subsample for each point in the estimated domain. More precisely, for some proportion parameter $\alpha\in (0,1)$ satisfying $\alpha n\in \N$, define the two subsamples
+    \begin{equation*}
+        \smash{\mathbb{X}_n^{(1)}} = \smash{(X_1,\ldots,X_{(1 - \alpha) n})}, \quad \smash{\mathbb{X}_n^{(2)}} = \smash{(X_{(1 - \alpha) n + 1},\ldots,X_n)},
+    \end{equation*}
+    so that $\smash{\mathbb{X}_n^{(1)}} \!\cap \smash{\mathbb{X}_n^{(2)}} = \emptyset$ and $\smash{\mathbb{X}_n^{(1)}} \!\cup \smash{\mathbb{X}_n^{(2)}} = \mathbb{X}_n$ in particular.
+
+    Define $\hat{\domain}_n$ as the convex hull of the first subsample $\mathbb{X}_n^{(1)}$. This serves as an estimator for the convex support $\domain$ of the target density $f$, a subject that has been extensively explored in the literature. For an in-depth review, we direct the reader to \cite{Brunel2018}. Now, we remark that, conditionally on the observations in $\smash{\mathbb{X}_n^{(1)}}$, the observations in $\smash{\mathbb{X}_n^{(2)}} \!\cap \hat{\domain}_n$ are independent and identically distributed with a common density function given by
+    \begin{equation*}
+        g(x) = \frac{f(x) \1_{\hat{\domain}_n}(x)}{\int_{\hat{\domain}_n} f(y) \rd y}, \quad x\in \R^d,
+    \end{equation*}
+    where $f\1_{\hat{\domain}_n}\leq f$ (since $\hat{\domain}_n\subseteq \domain$).
+
+    By definition, note that $\smash{\mathbb{X}_n^{(2)}}$ contains $\alpha n$ observations, i.e., $\smash{\mathrm{card}(\mathbb{X}_n^{(2)})} = \alpha n$, and let
+    \begin{equation*}
+        \hat{p}_n = \frac{\mathrm{card}(\mathbb{X}_n^{(2)} \!\cap \hat{\domain}_n)}{\mathrm{card}(\mathbb{X}_n^{(2)})}
+    \end{equation*}
+    denote the proportion of those observations which fall into the estimated support $\hat{\domain}_n$; $\hat{p}_n$ is the empirical counterpart of $p_n \equiv \smash{\int_{\hat{\domain}_n} f(y) \rd y}$. Moreover, conditionally on $\smash{\mathbb{X}_n^{(1)}}$, the support $\hat{\domain}_n$ of $g$ is known, so our local polynomial estimation procedure can be used to obtain the adaptive estimator $\hat{g}(t)$ defined in~\eqref{eq:selection.rule} for each point $t\in \hat{\domain}_n$. Given the above relationship between $g$ and $f$, it is natural to define the estimator of $f$:
+    \begin{equation*}
+        \hat{f}(x) = \hat{p}_n \hat{g}(x), \quad x\in \R^d.
+    \end{equation*}
+    Using the triangle inequality, Fubini's theorem, and Jensen's inequality, the integrated risk of $\hat{f}$ can be bounded as follows:
+    \begin{align*}
+        {IR}_n(\hat{f}, f)
+        &= \EE\left\{\int_{\domain} \big|\hat{p}_n \hat{g}(x) - \hat{p}_n g(x) + \hat{p}_n g(x) - p_n g(x) + p_n g(x) - f(x)\big| \rd x\right\} \\
+        &\leq \EE\left[\int_{\hat{\domain}_n} \EE\big\{\left|\hat{g}(x) - g(x)\right| \big| \, \mathbb{X}_n^{(1)}\big\} \rd x\right] + \EE\left(|\hat{p}_n - p_n|\right) + \EE\left\{\int_{\domain\backslash \hat{\domain}_n} f(x) \rd x\right\} \\
+        &\leq \EE\left(\int_{\hat{\domain}_n} \left[\EE\big\{\left|\hat{g}(x) - g(x)\right|^2 \big| \, \mathbb{X}_n^{(1)}\big\}\right]^{1/2} \rd x\right) + \EE\left(|\hat{p}_n - p_n|\right) + \EE\left\{\int_{\domain\backslash \hat{\domain}_n} f(x) \rd x\right\}.
+    \end{align*}
+    To bound $\EE(|\hat{p}_n - p_n|)$, we use the fact that, conditionally to $\smash{\mathbb{X}_n^{(1)}}$, the quantity $\alpha n \, \hat{p}_n$ has a Binomial distribution with parameters $\alpha n$ and $p_n$. To bound $\smash{\EE\{\int_{\domain\backslash \hat{\domain}_n} f(x) \rd x\}}$, we use Theorem~7 of \cite{Brunel2018} with the choice $x = \log\{(1 - \alpha) n\} \geq 0$. As a result, for $n$ large enough, we have
+    \begin{equation*}
+        \begin{aligned}
+            {IR}_n(\hat{f}, f)
+            &\lesssim \lambda(\domain) \times \EE\left(\sup_{x\in \hat{\domain}_n} \left[\EE\big\{\left|\hat{g}(x) - g(x)\right|^2 \big| \, \mathbb{X}_n^{(1)}\big\}\right]^{1/2} \1_{\{\hat{p}_n \geq 1 / 2\}}\right) \\
+            &\quad+ \lambda(\domain) \times \PP(\hat{p}_n < 1 / 2) + \frac{1}{\sqrt{\alpha n}} + \left[\frac{\|f\|_{\infty}+1}{\{(1 - \alpha) n\}^{2/(d+1)}} + \frac{\log\{(1 - \alpha) n\}}{(1 - \alpha) n} + \frac{1}{(1 - \alpha) n}\right].
+        \end{aligned}
+    \end{equation*}
+
+    By Theorem~7 of \cite{Brunel2018}, the probability $\PP(\hat{p}_n < 1 / 2)$ is exponentially small in $n$. It remains to bound the conditional expectation in the last equation. Note that if $n$ is large enough and the target density $f$ belongs to $\Sigma(s,L)$, then $g$ belongs to $\Sigma(s,L/p_n)\subseteq \Sigma(s,2L)$ with probability larger than $1/\{(1 - \alpha) n\}$, again by Theorem~7 of \cite{Brunel2018}. Hence, conditionally on $\mathbb{X}_n^{(1)}$, by applying item~2 of Theorem~\ref{thm:adaptivity.simple.domains} for every $x = t\in \hat{\domain}_n$ in $[\EE\{|\hat{g}(x) - g(x)|^2 | \, \smash{\mathbb{X}_n^{\scriptscriptstyle(1)}}\}]^{1/2} \1_{\{\hat{p}_n \geq 1 / 2\}}$, we obtain
+    \begin{equation*}
+        {IR}_n(\hat{f}, f) \lesssim (n^{-1} \log n)^{s/(2s+d)} + n^{-2/(d+1)},
+    \end{equation*}
+    where $\lesssim$ depends on $d$, $\|f\|_{\infty}$, $s$ $L$ and $\alpha$.
+
+    Assuming further that the target density $f$ is bounded away from zero on its support $\domain$, i.e., $f_0 \equiv \inf_{x\in \domain} f(x) > 0$, we also get a lower bound on the integrated risk of any estimator $\tilde{f}$ of $f$, including $\hat{f}$. Indeed, letting $\widetilde{\domain}_n = \{x\in \R^d : \tilde{f}(x) \geq f_0 / 2\}$, we have
+    \begin{equation*}
+        {IR}_n(\tilde{f}, f) = \EE\left\{\int_{\R^d} |\tilde{f}(x) - f(x)| \rd x\right\} \geq \frac{f_0}{2} \, \EE\big\{\lambda(\domain \triangle \widetilde{\domain}_n)\big\} \gtrsim n^{-2/(d+1)},
+    \end{equation*}
+    where $\domain \triangle \widetilde{\domain}_n$ denotes the symmetric difference between $\domain$ and $\widetilde{\domain}_n$, and the last inequality follows from a direct application of Theorem~2 of \cite{Brunel2018}. If the domain $\domain$ was known, we would also have ${IR}_n(\tilde{f}, f) \gtrsim n^{-s/(2s+d)}$.
+
+    Therefore, combining the findings from the last two paragraphs, it is reasonable to conjecture that in the case of unknown compact convex domains, both the minimax rate and the ARC for the $L^1$ integrated risk measure should be $n^{-s/(2s+d)} + n^{-2/(d+1)}$ when assuming some mild regularity conditions on the target density $f$. This problem is left open for future research.
+
+\section{Simulations}\label{sec:simulations}
+
+    In this section, we conduct a concise investigation using simulated data, where we assess the performance of our estimator against the one provided in the \texttt{sparr} package \cite{Davies_et_al2024}; see \citep{DaviesMarshallHazelton2018} for a tutorial. The \texttt{sparr} package is extensively used within the \texttt{R} community for estimating bivariate density functions on complicated domains. It is worth noting that since 2020, based on the data gathered by David Robinson's Shiny app \cite{Robinson2015}, the download rate of the \texttt{sparr} package has consistently been approximately three times higher than that of the other commonly used \texttt{latticeDensity} package \citep{Barry2021}.
+
+    We consider two polynomial sector domains for our simulations, namely $\domain_1$ and $\domain_{2.1}$; recall~\eqref{eq:domain.k}. Notice that the linear sector $\domain_1$ is a simple domain which satisfies Assumption~\ref{ass:1}, while $\domain_{2.1}$ is a complicated domain which is not star-shaped around the point of estimation $t=(0,0)$. On each domain, we consider two different types of density functions, which we describe below.
+
+    The first two density functions, polynomial in nature, are defined by
+    \begin{equation}\label{eq:poly.density}
+        f_k(x,y) = C_k \big\{(x-0.6)^2 + (y - 0.2)^2\big\} \1_{\domain_k}(x,y), \quad k\in\{1, 2.1\},
+    \end{equation}
+    where $C_k$ is a positive normalizing constant which depends on $k$. The contour plots of these two densities are depicted in Figure~\ref{fig:dens1}.
+
+    \begin{figure}[!b]
+        \includegraphics[width=67mm]{img/density-poly-1.pdf}
+        \qquad
+        \includegraphics[width=67mm]{img/density-poly-21.pdf}
+        \caption{The polynomial density functions $f_1$ (left) and $f_{2.1}$ (right) defined in~\eqref{eq:poly.density}. Darker regions are associated with higher values of $f_k$.}
+        \label{fig:dens1}
+    \end{figure}
+
+    The next two density functions are mixtures of truncated Gaussian distributions defined by
+    \begin{equation}\label{eq:mixture.Gaussian.density}
+        \begin{aligned}
+            g_k(x,y)
+            &= A_k \left[\exp\left\{-\frac{(x-a_k)^2 + (y-b_k)^2}{2(0.4)^2}\right\} + \exp\left\{-\frac{(x-c_k)^2 + (y-d_k)^2}{2(0.15)^2}\right\}\right], \quad k\in\{1, 2.1\},
+        \end{aligned}
+    \end{equation}
+    where $A_k$ is a positive normalizing constant which depends on $k$, and
+    \begin{equation*}
+        a_k = 1/10, \quad b_k = (1/10)^k/2, \quad c_k = 3/4, \quad \text{and} \quad d_k =  (3/4)^k/2.
+    \end{equation*}
+    The contour plots of these two densities are depicted in Figure~\ref{fig:dens2}.
+
+    \begin{figure}[ht]
+        \includegraphics[width=67mm]{img/density-norm-1.pdf}
+        \qquad
+        \includegraphics[width=67mm]{img/density-norm-21.pdf}
+        \caption{The mixtures of truncated Gaussian density functions $g_1$ (left) and $g_{2.1}$ (right) defined in~\eqref{eq:mixture.Gaussian.density}. Darker regions are associated with higher values of $g_k$.}
+        \label{fig:dens2}
+    \end{figure}
+
+    The \texttt{sparr} estimator $\smash{\hat{f}_h^{\, \mathrm{SPARR}}}$ depends on a tuning parameter $h$ which plays the role of the bandwidth while our local polynomial estimator $\smash{\hat{f}_{m,h}^{\, \mathrm{LP}}}$ depends on both a bandwidth $h$ and a polynomial degree $m$. Below, we consider the family of polynomial degrees $\mathcal{M} = \{0, 1, 2, 3, 4, 5\}$ and the family of bandwidths $\mathcal{H} = \{0.01 + 0.001\times\ell : \ell = 0,\ldots, 599\}$. For each target density $f\in\{f_1, f_{2.1}, g_1, g_{2.1}\}$ and each sample size $n\in\{200, 500, 1000, 2000\}$, we aim to compare two oracle estimators defined by
+    \begin{alignat*}{3}
+        &\hat{f}_{m^*,h^*}^{\, \mathrm{LP}}
+        && \quad \text{where} \quad
+        (m^{*}, h^*)
+        && = \mathop{\mathrm{arg\,min}}_{(m,h)\in \mathcal{M}\times \mathcal{H}} \EE\left\{\big|\hat{f}_{m,h}^{\, \mathrm{LP}}(t) - f(t)\big|^2\right\}, \\[-1mm]
+        &\hat{f}_{h^{\circ}}^{\, \mathrm{SPARR}}
+        && \quad \text{where} \quad
+        ~~~~~~~~~~ h^{\circ}
+        && = \mathop{\mathrm{arg\,min}}_{h\in \mathcal{H}} \EE\left\{\big|\hat{f}_h^{\, \mathrm{SPARR}}(t)\ - f(t)\big|^2\right\}.
+    \end{alignat*}
+    To accomplish this, we generate $R = 5000$ replications of the random samples of size $n$, and we compute for each replication $r\in \{1,\ldots,R\}$ the corresponding values of the estimators denoted by $\smash{[\hat{f}_{m,h}^{\, \mathrm{LP}}(t)]_r}$ and $\smash{[\hat{f}_h^{\, \mathrm{SPARR}}(t)]_r}$, respectively. Finally, we obtain the estimated oracles using
+    \begin{equation*}
+        \begin{aligned}
+            (\hat{m}^*, \hat{h}^*)
+            &= \mathop{\mathrm{arg\,min}}_{(m,h)\in \mathcal{M}\times \mathcal{H}} \frac{1}{R} \sum_{r=1}^R \big|[\hat{f}_{m,h}^{\, \mathrm{LP}}(t)]_r - f(t)\big|^2, \\[-1mm]
+            \hat{h}^{\circ}
+            &= \mathop{\mathrm{arg\,min}}_{h\in \mathcal{H}} \frac{1}{R} \sum_{r=1}^R \big|[\hat{f}_h^{\, \mathrm{SPARR}}(t)]_r - f(t)\big|^2.
+        \end{aligned}
+    \end{equation*}
+    The results are presented in Figures~\ref{fig:boxplot.poly}~and~\ref{fig:boxplot.norm} below.
+
+    \begin{figure}[!ht]
+        \includegraphics[width=70mm]{img/boxplot-poly-k1.pdf}
+        \includegraphics[width=70mm]{img/boxplot-poly-k21.pdf}
+        \caption{Boxplots of the $R$ replications of the estimated oracles. The target densities are $f_1$ (left) and $f_{2.1}$ (right).\vspace{-3mm}}
+        \label{fig:boxplot.poly}
+    \end{figure}
+
+    \begin{figure}[!ht]
+        \includegraphics[width=70mm]{img/boxplot-norm-k1.pdf}
+        \includegraphics[width=70mm]{img/boxplot-norm-k21.pdf}
+        \caption{Boxplots of the $R$ replications of the estimated oracles. The target densities are $g_1$ (left) and $g_{2.1}$ (right).\vspace{-3mm}}
+        \label{fig:boxplot.norm}
+    \end{figure}
+
+    Given a random sample of size $n\in \{200, 500, 1000, 2000\}$ for each replication, the boxplots of the $R$ estimated oracles using our local polynomial method, $\raisebox{0.2ex}{$\smash{[\hat{f}_{\hat{m}^*, \hat{h}^*}^{\, \mathrm{LP}}(t)]_{r=1}^R}$}$, are displayed in the left columns (LP) and the boxplots of the $R$ estimated oracles using the \texttt{sparr} package, $\smash{[\hat{f}_{\hat{h}^{\circ}}^{\, \mathrm{SPARR}}(t)]_{r=1}^R}$, are displayed in the right columns (SPARR). Figure~\ref{fig:boxplot.poly} corresponds with the polynomial-type densities $f_k$ defined in~\eqref{eq:poly.density} for $k=1$ (left) and $k=2.1$ (right), while Figure~\ref{fig:boxplot.norm} corresponds with the mixtures of truncated Gaussian distributions $g_k$ defined in \eqref{eq:mixture.Gaussian.density} for $k=1$ (left) and $k=2.1$ (right).
+
+    Together, Figures~\ref{fig:boxplot.poly}~and~\ref{fig:boxplot.norm} reveal that, for both the simple domain $\domain_1$ and the complicated domain $\domain_{2.1}$, our oracle estimates almost always outperform those of the \texttt{sparr} package in mean (black dot inside each box), in median (horizontal line inside each box), and in interquartile range (height of each box), under both the polynomial densities $f_k$ and the mixtures of truncated Gaussian densities $g_k$, and across all sample sizes $n$.
+
+    The only exception is observed under $g_{2.1}$ for $n = 200$, where the means, medians and interquartile ranges are close to being equal, still giving a slight edge to our method based on the means and quartiles.
+
+    Overall, out of the 16 cases considered, our oracle estimates outperform those of the \texttt{sparr} package in every case. The best polynomial degree selected was always either $1$ or $2$, which justifies our restricted range of polynomial degrees $\mathcal{M} = \{0, 1, 2, 3, 4, 5\}$. It is typical of low degree polynomials to be optimal for local polynomial kernel estimators; see, e.g., p.~126 of \cite{MR1319818}.
+
+
+\begin{acks}[Acknowledgments]
+The authors express their sincere gratitude to the anonymous reviewers for their constructive comments. The quality and depth of the questions posed by the referees have significantly enhanced the caliber of this paper. It has been possible to conduct this research in part thanks to the support provided by Calcul Qu\'ebec and the Digital Research Alliance of Canada.
+\end{acks}
+
+\begin{funding}
+K.\ Bertin is supported by FONDECYT regular grants 1221373 and 1230807 from ANID-Chile, and the Centro de Modelamiento Matemático (CMM) BASAL fund FB210005 for centers of excellence from ANID-Chile. N.\ Klutchnikoff acknowledges support from FONDECYT regular grant 1221373 from ANID-Chile. F.\ Ouimet was supported by a CRM-Simons postdoctoral fellowship from the Centre de recherches math\'ematiques (Montr\'eal, Canada) and the Simons Foundation. F.\ Ouimet is currently funded through a contribution to Christian Genest's research program from the Trottier Institute for Science and Public Policy.
+\end{funding}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Supplementary Material, if any, should   %%
+
+%% be provided in {supplement} environment  %%
+
+%% with title and short description.        %%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{supplement}
+
+\stitle{Supplement to ``A new adaptive local polynomial density estimation procedure on complicated domains''}
+
+\sdescription{The supplement comprises the proofs of all the propositions and theorems stated in the present text, as well as some preliminary technical lemmas and their proofs.}
+
+\end{supplement}
+
+\bibliographystyle{imsart-nameyear}
+\bibliography{bib}
+
+\end{document}

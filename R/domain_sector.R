@@ -58,7 +58,7 @@ sampler_sector <- function(k) {
       accepted <- cbind(accepted, rbind(x[ok] - tx, y[ok] - ty))
     }
     list(
-      points  = accepted[, seq_len(N_quad), drop = FALSE],
+      points = accepted[, seq_len(N_quad), drop = FALSE],
       n_total = round(N_quad * (2 * h)^2 / vol)
     )
   }

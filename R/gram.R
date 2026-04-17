@@ -23,7 +23,7 @@ gram_matrix <- function(s, h, alphas) {
 
   d <- nrow(s$points)
 
-  Phi <- build_Phi(s$points, h, alphas)       # D_m x N
-  weight <- (2 * h)^d / (s$n_total * h^d)    # = 2^d / n_total
-  weight * tcrossprod(Phi)                    # D_m x D_m
+  Phi <- build_Phi(s$points, h, alphas) # D_m x N
+  weight <- (2 * h)^d / (s$n_total * h^d) # = 2^d / n_total
+  weight * tcrossprod(Phi) # D_m x D_m
 }

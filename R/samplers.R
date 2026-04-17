@@ -23,12 +23,13 @@
 sampler_rejection <- function(is_in_domain) {
   function(N_quad, t, h) {
     d <- length(t)
-    U   <- matrix(runif(N_quad * d, -h, h), N_quad, d)
-    ok  <- is_in_domain(sweep(U, 2L, t, "+"))
+    U <- matrix(runif(N_quad * d, -h, h), N_quad, d)
+    ok <- is_in_domain(sweep(U, 2L, t, "+"))
     pts <- t(U[ok, , drop = FALSE])
     if (ncol(pts) == 0L) {
       stop(
-        "V(h) is empty for h = ", h,
+        "V(h) is empty for h = ",
+        h,
         ". Try increasing N_quad or reducing h."
       )
     }
@@ -71,9 +72,8 @@ sampler_spatstat <- function(win) {
 
     pts <- spatstat.random::runifpoint(N_quad, win = V_h)
     list(
-      points  = rbind(pts$x - t[1L], pts$y - t[2L]),
+      points = rbind(pts$x - t[1L], pts$y - t[2L]),
       n_total = round(N_quad * (2 * h)^2 / vol)
     )
   }
 }
-
