@@ -3,9 +3,14 @@
 test_that("density_lp_point: returns a scalar", {
   set.seed(1L)
   X <- matrix(runif(100L * 2L), 100L, 2L)
-  val <- densityLP:::density_lp_point(X, t = c(0.5, 0.5), h = 0.3,
-                                      m = 1L, domain = domain_Rd(2L),
-                                      N_quad = 200L)
+  val <- densityLP:::density_lp_point(
+    X,
+    t = c(0.5, 0.5),
+    h = 0.3,
+    m = 1L,
+    domain = domain_Rd(2L),
+    N_quad = 200L
+  )
   expect_true(is.numeric(val))
   expect_length(val, 1L)
 })
@@ -13,17 +18,27 @@ test_that("density_lp_point: returns a scalar", {
 test_that("density_lp_point: returns non-negative value", {
   set.seed(2L)
   X <- matrix(runif(200L * 2L), 200L, 2L)
-  val <- densityLP:::density_lp_point(X, t = c(0.5, 0.5), h = 0.3,
-                                      m = 1L, domain = domain_Rd(2L),
-                                      N_quad = 200L)
+  val <- densityLP:::density_lp_point(
+    X,
+    t = c(0.5, 0.5),
+    h = 0.3,
+    m = 1L,
+    domain = domain_Rd(2L),
+    N_quad = 200L
+  )
   expect_gte(val, 0)
 })
 
 test_that("density_lp_point: returns 0 when no observations in V(h)", {
   X <- matrix(runif(50L * 2L, 0.8, 1), 50L, 2L)
-  val <- densityLP:::density_lp_point(X, t = c(0.1, 0.1), h = 0.05,
-                                      m = 1L, domain = domain_Rd(2L),
-                                      N_quad = 200L)
+  val <- densityLP:::density_lp_point(
+    X,
+    t = c(0.1, 0.1),
+    h = 0.05,
+    m = 1L,
+    domain = domain_Rd(2L),
+    N_quad = 200L
+  )
   expect_equal(val, 0)
 })
 
@@ -32,16 +47,28 @@ test_that("density_lp_point: returns 0 when no observations in V(h)", {
 test_that("print.density_lp: returns x invisibly", {
   set.seed(10L)
   X <- matrix(runif(100L * 2L), 100L, 2L)
-  res <- density_lp(X, matrix(0.5, 1L, 2L), h = 0.3, m = 1L,
-                    domain = domain_Rd(2L), N_quad = 200L)
+  res <- density_lp(
+    X,
+    matrix(0.5, 1L, 2L),
+    h = 0.3,
+    m = 1L,
+    domain = domain_Rd(2L),
+    N_quad = 200L
+  )
   expect_identical(withVisible(print(res))$visible, FALSE)
 })
 
 test_that("print.density_lp: produces output", {
   set.seed(11L)
   X <- matrix(runif(100L * 2L), 100L, 2L)
-  res <- density_lp(X, matrix(0.5, 1L, 2L), h = 0.3, m = 1L,
-                    domain = domain_Rd(2L), N_quad = 200L)
+  res <- density_lp(
+    X,
+    matrix(0.5, 1L, 2L),
+    h = 0.3,
+    m = 1L,
+    domain = domain_Rd(2L),
+    N_quad = 200L
+  )
   expect_output(print(res), "Local polynomial")
 })
 
@@ -49,8 +76,14 @@ test_that("plot.density_lp: returns x invisibly for d=1", {
   set.seed(12L)
   X <- matrix(runif(100L), 100L, 1L)
   t_grid <- matrix(seq(0.2, 0.8, length.out = 5L), ncol = 1L)
-  res <- density_lp(X, t_grid, h = 0.3, m = 1L,
-                    domain = domain_Rd(1L), N_quad = 200L)
+  res <- density_lp(
+    X,
+    t_grid,
+    h = 0.3,
+    m = 1L,
+    domain = domain_Rd(1L),
+    N_quad = 200L
+  )
   expect_identical(withVisible(plot(res))$visible, FALSE)
 })
 
@@ -59,8 +92,14 @@ test_that("plot.density_lp: returns x invisibly for d=2", {
   X <- matrix(runif(100L * 2L), 100L, 2L)
   xs <- seq(0.2, 0.8, length.out = 3L)
   t_grid <- as.matrix(expand.grid(x = xs, y = xs))
-  res <- density_lp(X, t_grid, h = 0.3, m = 1L,
-                    domain = domain_Rd(2L), N_quad = 200L)
+  res <- density_lp(
+    X,
+    t_grid,
+    h = 0.3,
+    m = 1L,
+    domain = domain_Rd(2L),
+    N_quad = 200L
+  )
   expect_identical(withVisible(plot(res))$visible, FALSE)
 })
 
