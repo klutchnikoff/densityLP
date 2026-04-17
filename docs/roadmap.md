@@ -100,7 +100,7 @@ $\mathrm{vol}(\mathcal{V}(h))$ est obtenu gratuitement par ce même générateur
 │          Objets domaine "lp_domain" (constructeurs S3)           │
 │                                                                  │
 │  domain_Rd(d)          → R^d (pas de contrainte)                 │
-│  domain_func(f, d)     → domaine via is_in_domain : n×d→logical  │
+│  domain_from_indicator(f, d)     → domaine via is_in_domain : n×d→logical  │
 │  domain_sector(k)      → secteur D_k = {y ≤ x^k, x ∈ [0,1]}    │
 │                                                                  │
 │  Chaque objet porte : d, sampler interne, label                  │
@@ -639,7 +639,7 @@ densityLP/
 │   ├── gram.R            # gram_matrix()                         [interne]
 │   ├── samplers.R        # sampler_rejection(), sampler_qmc(),   [interne]
 │   │                     # sampler_spatstat(), sampler_sector()
-│   ├── domain.R          # domain_Rd(), domain_func(),           [exporté]
+│   ├── domain.R          # domain_Rd(), domain_from_indicator(),           [exporté]
 │   │                     # domain_sector() — constructeurs S3 "lp_domain"
 │   ├── core.R            # density_lp_point()                    [interne]
 │   ├── density_lp.R      # density_lp()                          [exporté]
@@ -724,7 +724,7 @@ Le cœur pur R (`lp_density_core`) n'a **aucune dépendance obligatoire**.
 - [ ] `build_alphas()` + tests unitaires (ordre, cardinalité $D_m$)
 - [ ] `build_Phi()` + tests (valeurs exactes pour m=0,1,2 et d=1,2)
 - [ ] `gram_matrix()` + tests (symétrie, définie-positivité)
-- [ ] Constructeurs `domain_Rd()`, `domain_func()`, `domain_sector()`
+- [ ] Constructeurs `domain_Rd()`, `domain_from_indicator()`, `domain_sector()`
 - [ ] `density_lp_point()` avec `sampler_rejection` uniquement
 - [ ] `density_lp()` (boucle sur grille → objet S3 `"density_lp"`)
 - [ ] `print` / `plot` pour `"density_lp"`

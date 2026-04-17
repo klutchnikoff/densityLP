@@ -33,20 +33,20 @@ test_that("domain_Rd: all N_quad points accepted (no rejection)", {
   expect_equal(s$n_total, N_quad)
 })
 
-test_that("domain_func: rejects points outside unit disk", {
+test_that("domain_from_indicator: rejects points outside unit disk", {
   set.seed(20L)
   is_in <- function(X) rowSums(X^2) <= 1
-  dom <- domain_func(is_in, d = 2L)
+  dom <- domain_from_indicator(is_in, d = 2L)
   expect_s3_class(dom, "lp_domain")
   s <- dom$sampler_factory()(100L, t = c(0, 0), h = 0.5)
   pts_global <- sweep(t(s$points), 2L, c(0, 0), "+")
   expect_true(all(rowSums(pts_global^2) <= 1 + 1e-9))
 })
 
-test_that("domain_func: n_total is positive and points are accepted", {
+test_that("domain_from_indicator: n_total is positive and points are accepted", {
   set.seed(21L)
   is_in <- function(X) rowSums(X^2) <= 1
-  dom <- domain_func(is_in, d = 2L)
+  dom <- domain_from_indicator(is_in, d = 2L)
   s <- dom$sampler_factory()(500L, t = c(0, 0), h = 0.5)
   expect_true(s$n_total > 0L)
   expect_true(ncol(s$points) > 0L)

@@ -42,7 +42,7 @@ domain_Rd <- function(d) {
 #' @param d Space dimension (integer >= 1).
 #' @return An `"lp_domain"` object.
 #' @export
-domain_func <- function(is_in_domain, d) {
+domain_from_indicator <- function(is_in_domain, d) {
   stopifnot(is.function(is_in_domain))
   stopifnot(is.numeric(d), length(d) == 1L, d >= 1, d == floor(d))
   d <- as.integer(d)

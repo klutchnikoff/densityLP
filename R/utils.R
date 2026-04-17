@@ -45,7 +45,7 @@ check_domain <- function(domain, d) {
   if (!inherits(domain, "lp_domain")) {
     stop(
       "`domain` must be an 'lp_domain' object ",
-      "(see domain_Rd(), domain_func(), domain_sector())."
+      "(see domain_Rd(), domain_from_indicator(), domain_sector())."
     )
   }
   if (domain$d != d) {

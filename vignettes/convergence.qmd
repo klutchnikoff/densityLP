@@ -120,7 +120,7 @@ We evaluate $\hat f$ at four points that progressively approach the boundary:
 
 ```{r cube-setup}
 is_cube  <- function(X) apply(X, 1L, function(x) all(x >= 0 & x <= 1))
-dom_cube <- domain_func(is_cube, d = 3L)
+dom_cube <- domain_from_indicator(is_cube, d = 3L)
 f_cube   <- 1   # true density
 
 t_cube <- rbind(
