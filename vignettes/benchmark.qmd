@@ -1,0 +1,304 @@
+---
+title: "R vs C++ benchmark: gram_matrix"
+format:
+  html:
+    toc: true
+    fig-width: 8
+    fig-height: 5
+    code-fold: true
+vignette: >
+  %\VignetteIndexEntry{R vs C++ benchmark: gram_matrix}
+  %\VignetteEngine{quarto::quarto}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(densityLP)
+build_alphas   <- densityLP:::build_alphas
+gram_matrix_cpp <- densityLP:::gram_matrix_cpp
+```
+
+We compare the pure-R implementation of `gram_matrix` (based on
+`matrixStats::colProds` + `tcrossprod`) against the C++ backend
+(`gram_matrix_cpp`, RcppArmadillo) across varying numbers of quadrature
+points $N$ and polynomial degrees $m$.
+
+The two implementations are mathematically identical; the benchmark measures
+only wall-clock time.
+
+---
+
+## Setup
+
+```{r params}
+library(bench)
+
+d      <- 2L     # dimension
+h      <- 0.3    # bandwidth
+Ns     <- c(100L, 500L, 1000L, 5000L, 10000L)
+ms     <- c(0L, 1L, 2L, 3L)
+```
+
+```{r gram-r}
+# Pure-R gram_matrix (reproduces the original implementation)
+gram_matrix_r <- function(s, h, alphas) {
+  d      <- nrow(s$points)
+  Dm     <- nrow(alphas)
+  N      <- ncol(s$points)
+  U_sc   <- s$points / h
+  Phi    <- matrix(NA_real_, Dm, N)
+  for (j in seq_len(Dm)) {
+    powered  <- U_sc^alphas[j, ]
+    Phi[j, ] <- matrixStats::colProds(powered)
+  }
+  weight <- (2 * h)^d / (s$n_total * h^d)
+  weight * tcrossprod(Phi)
+}
+```
+
+---
+
+## Numerical parity
+
+Before timing, we verify that both implementations agree to machine precision.
+
+```{r parity}
+set.seed(1L)
+m      <- 2L
+alphas <- build_alphas(m, d)
+N      <- 1000L
+pts    <- matrix(runif(d * N, -h, h), d, N)
+s      <- list(points = pts, n_total = N)
+
+B_r   <- gram_matrix_r(s, h, alphas)
+B_cpp <- gram_matrix_cpp(pts, h, alphas, N)
+
+max(abs(B_r - B_cpp))
+```
+
+---
+
+## Benchmark: varying N (m = 1, d = 2)
+
+```{r bench-N, cache=TRUE}
+set.seed(2L)
+m      <- 1L
+alphas <- build_alphas(m, d)
+
+results_N <- lapply(Ns, function(N) {
+  pts <- matrix(runif(d * N, -h, h), d, N)
+  s   <- list(points = pts, n_total = N)
+  bm  <- bench::mark(
+    R   = gram_matrix_r(s, h, alphas),
+    Cpp = gram_matrix_cpp(pts, h, alphas, N),
+    check = FALSE, iterations = 50L
+  )
+  data.frame(N = N, expr = c("R", "Cpp"),
+             median_us = as.numeric(bm$median) * 1e6)
+})
+bench_N <- do.call(rbind, results_N)
+bench_N$expr <- as.character(bench_N$expr)
+```
+
+```{r plot-N, fig.cap="Median time (µs) vs N, m = 1, d = 2"}
+pal <- c(R = "#EF4444", Cpp = "#3B82F6")
+bench_R   <- bench_N[bench_N$expr == "R",   ]
+bench_Cpp <- bench_N[bench_N$expr == "Cpp", ]
+
+plot(bench_R$N, bench_R$median_us,
+     type = "b", pch = 16, lwd = 2, col = pal["R"],
+     log = "xy", xlab = "N (quadrature points)", ylab = "Median time (µs)",
+     main = "gram_matrix: R vs C++  (m = 1, d = 2)",
+     xaxt = "n",
+     ylim = range(c(bench_R$median_us, bench_Cpp$median_us)))
+axis(1, at = Ns, labels = format(Ns, big.mark = ","))
+lines(bench_Cpp$N, bench_Cpp$median_us,
+      type = "b", pch = 16, lwd = 2, col = pal["Cpp"])
+legend("topleft", legend = c("R", "C++"), col = pal, pch = 16, lty = 1,
+       lwd = 2, bty = "n")
+```
+
+```{r speedup-N}
+speedup <- bench_R$median_us / bench_Cpp$median_us
+data.frame(N = Ns, speedup = round(speedup, 1L))
+```
+
+---
+
+## Benchmark: varying m (N = 2000, d = 2)
+
+```{r bench-m, cache=TRUE}
+set.seed(3L)
+N   <- 2000L
+pts <- matrix(runif(d * N, -h, h), d, N)
+s   <- list(points = pts, n_total = N)
+
+results_m <- lapply(ms, function(m) {
+  alphas <- build_alphas(m, d)
+  bm <- bench::mark(
+    R   = gram_matrix_r(s, h, alphas),
+    Cpp = gram_matrix_cpp(pts, h, alphas, N),
+    check = FALSE, iterations = 50L
+  )
+  data.frame(m = m, Dm = nrow(alphas),
+             expr = c("R", "Cpp"),
+             median_us = as.numeric(bm$median) * 1e6)
+})
+bench_m <- do.call(rbind, results_m)
+```
+
+```{r plot-m, fig.cap="Median time (µs) vs degree m, N = 2000, d = 2"}
+bench_mR   <- bench_m[bench_m$expr == "R",   ]
+bench_mCpp <- bench_m[bench_m$expr == "Cpp", ]
+Dm_vals    <- bench_mR$Dm
+
+plot(Dm_vals, bench_mR$median_us,
+     type = "b", pch = 16, lwd = 2, col = pal["R"],
+     xlab = expression(D[m] ~ "(basis size)"), ylab = "Median time (µs)",
+     main = "gram_matrix: R vs C++  (N = 2000, d = 2)",
+     ylim = range(c(bench_mR$median_us, bench_mCpp$median_us)))
+lines(Dm_vals, bench_mCpp$median_us,
+      type = "b", pch = 16, lwd = 2, col = pal["Cpp"])
+legend("topleft", legend = c("R", "C++"), col = pal, pch = 16, lty = 1,
+       lwd = 2, bty = "n")
+axis(3, at = Dm_vals, labels = paste0("m=", ms), tick = FALSE)
+```
+
+```{r speedup-m}
+data.frame(m = ms, Dm = bench_mR$Dm,
+           speedup = round(bench_mR$median_us / bench_mCpp$median_us, 1L))
+```
+
+---
+
+## End-to-end: full pipeline (`density_lp_point`), varying n
+
+We now benchmark the **complete** point estimator: Gram matrix + Cholesky +
+observation filtering + $\Phi$ evaluation + forward solves. The quadrature
+samples ($N = 1\,000$) are pre-generated and fixed; only the observations $X$
+vary.
+
+Domain: unit square $[0,1]^2$, target $t = (0.5, 0.5)$ (pure interior, so
+$V(h) = [0.2, 0.8]^2 \subset [0,1]^2$ and all quadrature points are accepted).
+
+```{r e2e-def}
+build_Phi        <- densityLP:::build_Phi
+lp_estimator_cpp <- densityLP:::lp_estimator_cpp
+
+density_lp_point_r <- function(X, t, h, s, alphas) {
+  d <- ncol(X)
+  n <- nrow(X)
+  B <- gram_matrix_r(s, h, alphas)
+  L <- chol(B)
+  e1 <- numeric(nrow(alphas))
+  e1[1L] <- 1.0
+  H_0 <- forwardsolve(t(L), e1)
+  U <- sweep(X, 2L, t, "-")
+  in_V <- apply(abs(U) <= h, 1L, all)
+  U_V <- t(U[in_V, , drop = FALSE])
+  if (ncol(U_V) == 0L) return(0)
+  Phi_V <- build_Phi(U_V, h, alphas)
+  H_V <- forwardsolve(t(L), Phi_V)
+  (h^(-d) / n) * sum(H_0 * H_V)
+}
+
+density_lp_point_cpp <- function(X, t, h, s, alphas) {
+  U_obs <- t(sweep(X, 2L, t, "-"))
+  lp_estimator_cpp(s$points, s$n_total, U_obs, h, alphas)
+}
+
+is_square <- function(X) apply(X, 1L, function(x) all(x >= 0 & x <= 1))
+dom_sq    <- domain_from_indicator(is_square, d = 2L)
+t_ctr     <- c(0.5, 0.5)
+N_q       <- 1000L
+set.seed(10L)
+sampler_sq <- dom_sq$sampler_factory()
+s_ctr      <- sampler_sq(N_q, t_ctr, h)
+```
+
+```{r e2e-bench-n, cache=TRUE}
+set.seed(11L)
+ns_e2e     <- c(200L, 500L, 1000L, 2000L, 5000L, 10000L)
+alphas_e2e <- build_alphas(1L, d)
+
+res_n_e2e <- lapply(ns_e2e, function(n) {
+  X <- matrix(runif(d * n), n, d)
+  bm <- bench::mark(
+    R   = density_lp_point_r(X, t_ctr, h, s_ctr, alphas_e2e),
+    Cpp = density_lp_point_cpp(X, t_ctr, h, s_ctr, alphas_e2e),
+    check = FALSE, iterations = 50L
+  )
+  data.frame(n = n, expr = c("R", "Cpp"),
+             median_us = as.numeric(bm$median) * 1e6)
+})
+bench_n_e2e <- do.call(rbind, res_n_e2e)
+```
+
+```{r e2e-plot-n, fig.cap="Median time (µs) vs n, full pipeline, m = 1, d = 2"}
+bench_R_e2e   <- bench_n_e2e[bench_n_e2e$expr == "R",   ]
+bench_Cpp_e2e <- bench_n_e2e[bench_n_e2e$expr == "Cpp", ]
+
+plot(bench_R_e2e$n, bench_R_e2e$median_us,
+     type = "b", pch = 16, lwd = 2, col = pal["R"],
+     log = "xy", xlab = "n (observations)", ylab = "Median time (µs)",
+     main = "density_lp_point: R vs C++  (m = 1, d = 2)",
+     xaxt = "n",
+     ylim = range(c(bench_R_e2e$median_us, bench_Cpp_e2e$median_us)))
+axis(1, at = ns_e2e, labels = format(ns_e2e, big.mark = ","))
+lines(bench_Cpp_e2e$n, bench_Cpp_e2e$median_us,
+      type = "b", pch = 16, lwd = 2, col = pal["Cpp"])
+legend("topleft", legend = c("R", "C++"), col = pal, pch = 16, lty = 1,
+       lwd = 2, bty = "n")
+```
+
+```{r e2e-speedup-n}
+data.frame(n = ns_e2e,
+           speedup = round(bench_R_e2e$median_us / bench_Cpp_e2e$median_us, 1L))
+```
+
+---
+
+## End-to-end: full pipeline, varying m (n = 2 000, d = 2)
+
+```{r e2e-bench-m, cache=TRUE}
+set.seed(12L)
+n_e2e <- 2000L
+X_e2e <- matrix(runif(d * n_e2e), n_e2e, d)
+
+res_m_e2e <- lapply(ms, function(m) {
+  alphas <- build_alphas(m, d)
+  set.seed(13L)
+  s <- sampler_sq(N_q, t_ctr, h)
+  bm <- bench::mark(
+    R   = density_lp_point_r(X_e2e, t_ctr, h, s, alphas),
+    Cpp = density_lp_point_cpp(X_e2e, t_ctr, h, s, alphas),
+    check = FALSE, iterations = 50L
+  )
+  data.frame(m = m, Dm = nrow(alphas), expr = c("R", "Cpp"),
+             median_us = as.numeric(bm$median) * 1e6)
+})
+bench_m_e2e <- do.call(rbind, res_m_e2e)
+```
+
+```{r e2e-plot-m, fig.cap="Median time (µs) vs degree m, full pipeline, n = 2 000, d = 2"}
+bench_mR_e2e   <- bench_m_e2e[bench_m_e2e$expr == "R",   ]
+bench_mCpp_e2e <- bench_m_e2e[bench_m_e2e$expr == "Cpp", ]
+Dm_e2e         <- bench_mR_e2e$Dm
+
+plot(Dm_e2e, bench_mR_e2e$median_us,
+     type = "b", pch = 16, lwd = 2, col = pal["R"],
+     xlab = expression(D[m] ~ "(basis size)"), ylab = "Median time (µs)",
+     main = "density_lp_point: R vs C++  (n = 2 000, d = 2)",
+     ylim = range(c(bench_mR_e2e$median_us, bench_mCpp_e2e$median_us)))
+lines(Dm_e2e, bench_mCpp_e2e$median_us,
+      type = "b", pch = 16, lwd = 2, col = pal["Cpp"])
+legend("topleft", legend = c("R", "C++"), col = pal, pch = 16, lty = 1,
+       lwd = 2, bty = "n")
+axis(3, at = Dm_e2e, labels = paste0("m=", ms), tick = FALSE)
+```
+
+```{r e2e-speedup-m}
+data.frame(m = ms, Dm = bench_mR_e2e$Dm,
+           speedup = round(bench_mR_e2e$median_us / bench_mCpp_e2e$median_us, 1L))
+```

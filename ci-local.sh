@@ -54,11 +54,9 @@ fi
 # ── 2. testthat ───────────────────────────────────────────────────────────────
 step "Running tests (testthat)"
 Rscript -e '
-  # Source all R files in dependency order
-  files <- c("R/alphas.R", "R/gram.R", "R/samplers.R", "R/domain.R",
-             "R/domain_sector.R", "R/utils.R", "R/core.R",
-             "R/density_lp.R", "R/methods.R")
-  invisible(lapply(files, source))
+  install.packages(".", repos = NULL, type = "source", quiet = TRUE)
+  library(densityLP)
+  attach(asNamespace("densityLP"))
   library(testthat)
   results <- test_dir("tests/testthat", reporter = "progress")
   if (any(as.data.frame(results)$failed > 0)) quit(status = 1)

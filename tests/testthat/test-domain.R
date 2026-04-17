@@ -90,3 +90,48 @@ test_that("check_domain: error on dimension mismatch", {
   dom <- domain_Rd(2L)
   expect_error(check_domain(dom, d = 3L), "dimension")
 })
+
+# ── check_X / check_t_grid ─────────────────────────────────────────────────────
+
+test_that("check_X: error if not a matrix", {
+  expect_error(check_X(as.data.frame(matrix(1, 3, 2))), "matrix")
+})
+
+test_that("check_X: error if not numeric", {
+  expect_error(check_X(matrix("a", 2, 2)), "numeric")
+})
+
+test_that("check_X: error if contains NA", {
+  X <- matrix(1:4, 2, 2)
+  X[1, 1] <- NA_real_
+  expect_error(check_X(X), "missing")
+})
+
+test_that("check_X: error if zero rows", {
+  expect_error(check_X(matrix(numeric(0), 0, 2)), "one observation")
+})
+
+test_that("check_t_grid: error if not a matrix", {
+  expect_error(check_t_grid(c(0.5, 0.5), d = 2L), "matrix")
+})
+
+test_that("check_t_grid: error on dimension mismatch", {
+  expect_error(check_t_grid(matrix(0.5, 1, 3), d = 2L), "column")
+})
+
+test_that("check_t_grid: error if contains NA", {
+  t <- matrix(c(0.5, NA_real_), 1, 2)
+  expect_error(check_t_grid(t, d = 2L), "missing")
+})
+
+# ── print.lp_domain ────────────────────────────────────────────────────────────
+
+test_that("print.lp_domain: returns x invisibly", {
+  dom <- domain_Rd(2L)
+  expect_identical(withVisible(print(dom))$visible, FALSE)
+})
+
+test_that("print.lp_domain: produces output", {
+  dom <- domain_Rd(2L)
+  expect_output(print(dom), "lp_domain")
+})

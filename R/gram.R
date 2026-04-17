@@ -21,9 +21,5 @@ gram_matrix <- function(s, h, alphas) {
   stopifnot(is.matrix(s$points), ncol(s$points) >= 1L)
   stopifnot(is.numeric(s$n_total), s$n_total > 0)
 
-  d <- nrow(s$points)
-
-  Phi <- build_Phi(s$points, h, alphas) # D_m x N
-  weight <- (2 * h)^d / (s$n_total * h^d) # = 2^d / n_total
-  weight * tcrossprod(Phi) # D_m x D_m
+  gram_matrix_cpp(s$points, h, alphas, s$n_total)
 }
