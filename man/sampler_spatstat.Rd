@@ -11,11 +11,11 @@ sampler_spatstat(win)
 \eqn{\mathcal{D}}.}
 }
 \value{
-Closure \verb{function(N, t, h)}.
+Closure \verb{function(N_quad, t, h)}.
 }
 \description{
-Draws N uniform points in \eqn{V(h) = \mathcal{D} \cap [-h, h]^2} using
-\code{\link[spatstat.random:runifpoint]{spatstat.random::runifpoint()}}.  The area is computed exactly from the
-polygon intersection.
+Draws N_quad uniform points in \eqn{V(h) = \mathcal{D} \cap [-h, h]^2}
+using \code{\link[spatstat.random:runifpoint]{spatstat.random::runifpoint()}}.  The area is computed exactly from
+the polygon intersection; \verb{n_total = round(N_quad * (2h)^2 / vol)}.
 }
 \keyword{internal}

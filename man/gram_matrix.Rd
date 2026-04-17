@@ -2,13 +2,13 @@
 % Please edit documentation in R/gram.R
 \name{gram_matrix}
 \alias{gram_matrix}
-\title{Compute the Gram matrix B_gamma by Monte Carlo approximation}
+\title{Compute the Gram matrix B_gamma}
 \usage{
 gram_matrix(s, h, alphas)
 }
 \arguments{
 \item{s}{Output of a sampler: list with \verb{$points} (d x N matrix of points
-u_k centred at t) and \verb{$vol} (scalar, volume of V(h)).}
+u_k centred at t) and \verb{$n_total} (integer, total draws in the box).}
 
 \item{h}{Bandwidth (scalar > 0).}
 
@@ -19,7 +19,12 @@ Symmetric matrix of size D_m x D_m (positive definite when V(h) is
 non-degenerate).
 }
 \description{
-\eqn{B_\gamma = \int_{V(h)} \Phi \Phi^\top w_h \, du}
-~= (vol(V(h)) / (N * h^d)) * sum_k phi(u_k) phi(u_k)^T
+\eqn{B_\gamma = \int_{[-h,h]^d} \Phi(u) \Phi^\top(u)\, w_h(u) \, du
+             \approx \frac{(2h)^d}{N_{total} \cdot h^d}
+                     \sum_{k \in V(h)} \Phi(u_k)\Phi^\top(u_k)}
+}
+\details{
+\code{s$n_total} is the total number of draws in \eqn{[-h,h]^d} that produced
+the \code{N} returned points. The box volume \eqn{(2h)^d} is always exact.
 }
 \keyword{internal}

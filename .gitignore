@@ -15,6 +15,10 @@
 # Air formatter cache
 .air/
 
+# Quarto rendered output (vignettes)
+vignettes/*.html
+vignettes/*_files/
+
 # macOS
 .DS_Store
 

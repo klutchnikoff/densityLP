@@ -3,5 +3,7 @@
 ^docs$
 ^ci-local\.sh$
 ^\.gitignore$
+^vignettes/.*\.html$
+^vignettes/.*_files$
 ^.*\.Rproj$
 ^\.Rproj\.user$

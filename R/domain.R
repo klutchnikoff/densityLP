@@ -1,5 +1,6 @@
 # Domain objects "lp_domain" ----------------------------------------------------
 
+#' @keywords internal
 new_lp_domain <- function(d, sampler_factory, label) {
   structure(
     list(d = d, sampler_factory = sampler_factory, label = label),
@@ -7,6 +8,10 @@ new_lp_domain <- function(d, sampler_factory, label) {
   )
 }
 
+#' Print an lp_domain object
+#' @param x An `"lp_domain"` object.
+#' @param ... Ignored.
+#' @return `x` invisibly.
 #' @export
 print.lp_domain <- function(x, ...) {
   cat("lp_domain object:", x$label, "(d =", x$d, ")\n")
@@ -35,33 +40,12 @@ domain_Rd <- function(d) {
 #'   `n x d` numeric matrix of points in R^d and the return value is a logical
 #'   vector of length `n`.
 #' @param d Space dimension (integer >= 1).
-#' @param method Sampling method: `"rejection"` (default) or `"qmc"` (Sobol
-#'   quasi-Monte Carlo, faster convergence for smooth domains).
 #' @return An `"lp_domain"` object.
 #' @export
-domain_func <- function(is_in_domain, d, method = c("rejection", "qmc")) {
+domain_func <- function(is_in_domain, d) {
   stopifnot(is.function(is_in_domain))
   stopifnot(is.numeric(d), length(d) == 1L, d >= 1, d == floor(d))
-  method <- match.arg(method)
   d <- as.integer(d)
-  factory <- switch(
-    method,
-    rejection = function() sampler_rejection(is_in_domain),
-    qmc = function() sampler_qmc(is_in_domain)
-  )
-  new_lp_domain(d, factory, label = paste0("analytic domain (", method, ")"))
+  new_lp_domain(d, function() sampler_rejection(is_in_domain), label = "analytic domain")
 }
 
-#' Polynomial sector \eqn{D_k = \{(x, y) : x \in [0, 1],\, 0 \le y \le x^k\}}
-#'
-#' @param k Sector exponent (scalar > 0).
-#' @return An `"lp_domain"` object (d = 2).
-#' @export
-domain_sector <- function(k) {
-  stopifnot(is.numeric(k), length(k) == 1L, k > 0)
-  new_lp_domain(
-    2L,
-    function() sampler_sector(k),
-    label = paste0("polynomial sector D_", k)
-  )
-}

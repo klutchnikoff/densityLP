@@ -1,5 +1,6 @@
 # Input checks (internal) -------------------------------------------------------
 
+#' @keywords internal
 check_X <- function(X) {
   if (!is.matrix(X)) {
     stop("`X` must be a numeric matrix (n x d). Use `as.matrix(X)` if needed.")
@@ -15,6 +16,7 @@ check_X <- function(X) {
   }
 }
 
+#' @keywords internal
 check_t_grid <- function(t_grid, d) {
   if (!is.matrix(t_grid)) {
     stop("`t_grid` must be a numeric matrix (p x d).")
@@ -38,6 +40,7 @@ check_t_grid <- function(t_grid, d) {
   }
 }
 
+#' @keywords internal
 check_domain <- function(domain, d) {
   if (!inherits(domain, "lp_domain")) {
     stop(

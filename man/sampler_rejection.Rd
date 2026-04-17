@@ -4,18 +4,17 @@
 \alias{sampler_rejection}
 \title{Rejection sampler for an arbitrary analytic domain}
 \usage{
-sampler_rejection(is_in_domain, n_pre = 2000L)
+sampler_rejection(is_in_domain)
 }
 \arguments{
 \item{is_in_domain}{Vectorised function: n x d matrix -> logical vector.}
-
-\item{n_pre}{Number of points used for the preliminary acceptance rate
-estimate.}
 }
 \value{
-Closure \verb{function(N, t, h)}.
+Closure \verb{function(N_quad, t, h)}.
 }
 \description{
-Rejection sampler for an arbitrary analytic domain
+Draws \code{N_quad} points uniformly in \eqn{[-h,h]^d} and returns \strong{all}
+accepted points (those in \eqn{V(h)}).  The count \code{N_in} is therefore
+variable and carries the domain-size information needed by \code{gram_matrix}.
 }
 \keyword{internal}

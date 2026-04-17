@@ -1,5 +1,9 @@
 # S3 methods for "density_lp" ---------------------------------------------------
 
+#' Print a density_lp object
+#' @param x A `"density_lp"` object.
+#' @param ... Ignored.
+#' @return `x` invisibly.
 #' @importFrom grDevices grey
 #' @importFrom graphics image
 #' @export
@@ -21,6 +25,10 @@ print.density_lp <- function(x, ...) {
   invisible(x)
 }
 
+#' Plot a density_lp object
+#' @param x A `"density_lp"` object.
+#' @param ... Passed to the underlying plot function.
+#' @return `x` invisibly.
 #' @export
 plot.density_lp <- function(x, ...) {
   d <- x$domain$d

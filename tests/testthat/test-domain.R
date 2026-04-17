@@ -5,13 +5,12 @@ test_that("domain_Rd: correct class and dimension", {
   expect_true(is.function(dom$sampler_factory))
 })
 
-test_that("domain_Rd: sampler returns N points of dimension d", {
+test_that("domain_Rd: sampler returns points of correct dimension", {
   set.seed(10L)
   dom <- domain_Rd(3L)
   s <- dom$sampler_factory()(50L, t = c(0.5, 0.5, 0.5), h = 0.2)
   expect_equal(nrow(s$points), 3L)
-  expect_equal(ncol(s$points), 50L)
-  expect_true(s$vol > 0)
+  expect_true(s$n_total > 0L)
 })
 
 test_that("domain_Rd: all sampled points lie in [-h, h]^d", {
@@ -22,13 +21,16 @@ test_that("domain_Rd: all sampled points lie in [-h, h]^d", {
   expect_true(all(abs(s$points) <= h))
 })
 
-test_that("domain_Rd: volume close to (2h)^d", {
+test_that("domain_Rd: all N_quad points accepted (no rejection)", {
   set.seed(12L)
   d <- 2L
   h <- 0.4
+  N_quad <- 2000L
   dom <- domain_Rd(d)
-  s <- dom$sampler_factory()(2000L, t = rep(0.5, d), h = h)
-  expect_equal(s$vol, (2 * h)^d, tolerance = 1e-10)
+  s <- dom$sampler_factory()(N_quad, t = rep(0.5, d), h = h)
+  # domain_Rd accepts everything: N_in = N_quad and n_total = N_quad
+  expect_equal(ncol(s$points), N_quad)
+  expect_equal(s$n_total, N_quad)
 })
 
 test_that("domain_func: rejects points outside unit disk", {
@@ -41,12 +43,13 @@ test_that("domain_func: rejects points outside unit disk", {
   expect_true(all(rowSums(pts_global^2) <= 1 + 1e-9))
 })
 
-test_that("domain_func: volume estimate is positive", {
+test_that("domain_func: n_total is positive and points are accepted", {
   set.seed(21L)
   is_in <- function(X) rowSums(X^2) <= 1
   dom <- domain_func(is_in, d = 2L)
   s <- dom$sampler_factory()(500L, t = c(0, 0), h = 0.5)
-  expect_true(s$vol > 0)
+  expect_true(s$n_total > 0L)
+  expect_true(ncol(s$points) > 0L)
 })
 
 test_that("domain_sector: correct class and dimension", {
@@ -62,7 +65,6 @@ test_that("domain_sector: sampled points lie in D_k", {
   t_pt <- c(0.5, 0.1)
   h <- 0.2
   s <- dom$sampler_factory()(200L, t = t_pt, h = h)
-  # Recover global coordinates
   pts <- sweep(t(s$points), 2L, t_pt, "+")
   x <- pts[, 1L]
   y <- pts[, 2L]
@@ -72,12 +74,12 @@ test_that("domain_sector: sampled points lie in D_k", {
   expect_true(all(y <= x^k + 1e-9))
 })
 
-test_that("domain_sector: volume is positive and finite", {
+test_that("domain_sector: n_total is positive and finite", {
   set.seed(31L)
   dom <- domain_sector(1)
   s <- dom$sampler_factory()(300L, t = c(0.5, 0.2), h = 0.2)
-  expect_true(is.finite(s$vol))
-  expect_true(s$vol > 0)
+  expect_true(is.finite(s$n_total))
+  expect_true(s$n_total > 0L)
 })
 
 test_that("check_domain: error on wrong class", {

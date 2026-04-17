@@ -1,26 +1,29 @@
 # Gram matrix -------------------------------------------------------------------
 
-#' Compute the Gram matrix B_gamma by Monte Carlo approximation
+#' Compute the Gram matrix B_gamma
 #'
-#' \eqn{B_\gamma = \int_{V(h)} \Phi \Phi^\top w_h \, du}
-#'        ~= (vol(V(h)) / (N * h^d)) * sum_k phi(u_k) phi(u_k)^T
+#' \eqn{B_\gamma = \int_{[-h,h]^d} \Phi(u) \Phi^\top(u)\, w_h(u) \, du
+#'              \approx \frac{(2h)^d}{N_{total} \cdot h^d}
+#'                      \sum_{k \in V(h)} \Phi(u_k)\Phi^\top(u_k)}
+#'
+#' `s$n_total` is the total number of draws in \eqn{[-h,h]^d} that produced
+#' the `N` returned points. The box volume \eqn{(2h)^d} is always exact.
 #'
 #' @param s Output of a sampler: list with `$points` (d x N matrix of points
-#'   u_k centred at t) and `$vol` (scalar, volume of V(h)).
+#'   u_k centred at t) and `$n_total` (integer, total draws in the box).
 #' @param h Bandwidth (scalar > 0).
 #' @param alphas Integer matrix D_m x d of multi-indices.
 #' @return Symmetric matrix of size D_m x D_m (positive definite when V(h) is
 #'   non-degenerate).
 #' @keywords internal
 gram_matrix <- function(s, h, alphas) {
-  stopifnot(is.list(s), !is.null(s$points), !is.null(s$vol))
+  stopifnot(is.list(s), !is.null(s$points), !is.null(s$n_total))
   stopifnot(is.matrix(s$points), ncol(s$points) >= 1L)
-  stopifnot(s$vol > 0)
+  stopifnot(is.numeric(s$n_total), s$n_total > 0)
 
   d <- nrow(s$points)
-  N <- ncol(s$points)
 
-  Phi <- build_Phi(s$points, h, alphas) # D_m x N
-  weight <- s$vol / (N * h^d) # scalar
-  weight * tcrossprod(Phi) # D_m x D_m
+  Phi <- build_Phi(s$points, h, alphas)       # D_m x N
+  weight <- (2 * h)^d / (s$n_total * h^d)    # = 2^d / n_total
+  weight * tcrossprod(Phi)                    # D_m x D_m
 }

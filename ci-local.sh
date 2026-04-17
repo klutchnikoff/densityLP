@@ -56,7 +56,8 @@ step "Running tests (testthat)"
 Rscript -e '
   # Source all R files in dependency order
   files <- c("R/alphas.R", "R/gram.R", "R/samplers.R", "R/domain.R",
-             "R/utils.R", "R/core.R", "R/density_lp.R", "R/methods.R")
+             "R/domain_sector.R", "R/utils.R", "R/core.R",
+             "R/density_lp.R", "R/methods.R")
   invisible(lapply(files, source))
   library(testthat)
   results <- test_dir("tests/testthat", reporter = "progress")

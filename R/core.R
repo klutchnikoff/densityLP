@@ -42,14 +42,16 @@ density_lp_point <- function(X, t, h, m, domain, N_quad) {
       )
     }
   )
-  # B = t(L) %*% L  (L upper triangular),  so B^{-1/2} = L^{-1}
-  L_inv <- backsolve(L, diag(nrow(L)))
+  # B = t(L) %*% L  (L upper triangular)
+  # B^{-1} = L^{-1} t(L^{-1})
+  # e_1^T B^{-1} phi = (t(L^{-1}) e_1)^T (t(L^{-1}) phi)
+  # Solve t(L) x = v  <=>  x = t(L^{-1}) v  (t(L) is lower triangular)
 
-  # 3. H_gamma(0) = L_inv %*% e_1
+  # 3. H_gamma(0) = t(L^{-1}) %*% e_1
   # Phi_gamma(0) = e_1 because only the constant monomial equals 1 at u = 0
   e1 <- numeric(nrow(alphas))
   e1[1L] <- 1.0
-  H_0 <- drop(L_inv %*% e1) # D_m vector
+  H_0 <- forwardsolve(t(L), e1) # D_m vector
 
   # 4. Observations in V(h): U_i = X_i - t, keep |U_i|_inf <= h
   U <- sweep(X, 2L, t, "-") # n x d
@@ -62,7 +64,7 @@ density_lp_point <- function(X, t, h, m, domain, N_quad) {
 
   # 5. Estimator: (h^{-d} / n) * sum_i H_0^T H(U_i)
   Phi_V <- build_Phi(U_V, h, alphas) # D_m x N_V
-  H_V <- L_inv %*% Phi_V # D_m x N_V
+  H_V <- forwardsolve(t(L), Phi_V) # D_m x N_V
 
   (h^(-d) / n) * sum(H_0 * H_V)
 }

@@ -16,7 +16,7 @@ build_alphas <- function(m, d) {
   grid <- do.call(expand.grid, rep(list(seq.int(0L, m)), d))
   valid <- rowSums(grid) <= m
   alphas <- as.matrix(grid[valid, , drop = FALSE])
-  mode(alphas) <- "integer"
+  storage.mode(alphas) <- "integer"
 
   # Sort by increasing total degree, then lexicographically column by column
   deg <- rowSums(alphas)
@@ -59,20 +59,7 @@ build_Phi <- function(U, h, alphas) {
   Phi <- matrix(NA_real_, Dm, N)
   for (j in seq_len(Dm)) {
     powered <- U_sc^alphas[j, ] # d x N, element-wise
-    Phi[j, ] <- col_prods(powered)
+    Phi[j, ] <- matrixStats::colProds(powered)
   }
   Phi
-}
-
-# Column-wise product of a matrix (equivalent to apply(M, 2, prod) but avoids
-# overhead for small d).
-col_prods <- function(M) {
-  if (nrow(M) == 1L) {
-    return(M[1L, ])
-  }
-  out <- M[1L, ]
-  for (i in seq.int(2L, nrow(M))) {
-    out <- out * M[i, ]
-  }
-  out
 }

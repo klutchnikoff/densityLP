@@ -1,0 +1,254 @@
+---
+title: "Convergence study on complex domains"
+format:
+  html:
+    toc: true
+    fig-width: 9
+    fig-height: 6
+    code-fold: true
+vignette: >
+  %\VignetteIndexEntry{Convergence study on complex domains}
+  %\VignetteEngine{quarto::quarto}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(densityLP)
+```
+
+We illustrate how the local polynomial estimator ($m = 1$, bandwidth $h = 0.3$)
+behaves at points with varying proximity to the boundary, on two domains:
+
+1. the unit cube $[0, 1]^3$ in $\mathbb{R}^3$,
+2. the polynomial sector
+   $D_2 = \{(x, y) : x \in [0, 1],\; 0 \le y \le x^2\}$ in $\mathbb{R}^2$.
+
+For each domain we simulate $R = 100$ independent datasets of sizes
+$n \in \{100, 500, 1000, 5000\}$ from the uniform distribution on the domain,
+compute $\hat f(t)$ at several target points $t$, and summarise the
+distribution of $\hat f(t)$ as well as the mean squared error
+$\mathrm{MSE}(n, t) = \mathbb{E}[(\hat f(t) - f(t))^2]$.
+
+---
+
+## Common parameters
+
+```{r params}
+ns     <- c(100L, 500L, 1000L, 5000L)
+R      <- 100L   # Monte Carlo replications
+m      <- 1L     # local linear
+h      <- 0.3    # bandwidth (shared across both domains)
+N_quad_sector <- 500L   # quadrature points per target
+N_quad_cube <- 5000L   # quadrature points per target
+```
+
+## Plotting helpers
+
+```{r helpers}
+# Colour palette (one per evaluation point)
+pal <- c("#3B82F6", "#F59E0B", "#EF4444", "#22C55E")
+
+# Bias (mean - f_true) +/- 1 sd across replications, one panel per target point
+plot_convergence <- function(res, ns, f_true, pt_labels, title) {
+  n_pts <- length(pt_labels)
+  nc    <- min(n_pts, 2L)
+  nr    <- ceiling(n_pts / nc)
+  par(mfrow = c(nr, nc), mar = c(4, 4.5, 3, 1), oma = c(0, 0, 2, 0))
+
+  for (k in seq_len(n_pts)) {
+    vals  <- res[, , k]                         # R x length(ns)
+    bias  <- colMeans(vals, na.rm = TRUE) - f_true
+    sigma <- apply(vals, 2L, sd, na.rm = TRUE)
+    ylim  <- range(c(bias - sigma, bias + sigma, 0), na.rm = TRUE)
+
+    plot(
+      ns, bias,
+      type = "b", pch = 16, lwd = 2, col = pal[k],
+      log  = "x", xlab = "n",
+      ylab = expression(hat(f)(t) - f(t)),
+      main = pt_labels[k], ylim = ylim, xaxt = "n"
+    )
+    axis(1, at = ns, labels = format(ns, big.mark = ","))
+    polygon(
+      c(ns, rev(ns)),
+      c(bias + sigma, rev(bias - sigma)),
+      col = adjustcolor(pal[k], alpha.f = 0.25), border = NA
+    )
+    abline(h = 0, lty = 2, lwd = 1.5, col = "#64748B")
+  }
+  mtext(title, outer = TRUE, cex = 1.1, font = 2)
+  par(mfrow = c(1L, 1L))
+}
+
+# MSE curves on log-log scale
+plot_mse <- function(res, ns, f_true, pt_labels, title) {
+  mse <- apply(res, c(2L, 3L), function(x) mean((x - f_true)^2, na.rm = TRUE))
+  # mse: length(ns) x n_pts
+  matplot(
+    ns, mse,
+    type = "b", pch = 16, lwd = 2,
+    col  = pal[seq_len(length(pt_labels))],
+    log  = "xy", xlab = "n", ylab = "MSE",
+    main = title, xaxt = "n"
+  )
+  axis(1, at = ns, labels = format(ns, big.mark = ","))
+  legend(
+    "topright",
+    legend = pt_labels,
+    col    = pal[seq_len(length(pt_labels))],
+    pch    = 16, lty = 1, lwd = 2, bty = "n", cex = 0.9
+  )
+}
+```
+
+---
+
+## 1. Cube $[0, 1]^3$
+
+### Domain and target points
+
+The underlying density is uniform: $f \equiv 1$ on $[0, 1]^3$.
+We evaluate $\hat f$ at four points that progressively approach the boundary:
+
+| Label | $t$ | Position |
+|---|---|---|
+| Center | $(0.5, 0.5, 0.5)$ | interior |
+| Face center | $(0, 0.5, 0.5)$ | face midpoint |
+| Edge midpoint | $(0, 0, 0.5)$ | edge midpoint |
+| Corner | $(0, 0, 0)$ | vertex |
+
+```{r cube-setup}
+is_cube  <- function(X) apply(X, 1L, function(x) all(x >= 0 & x <= 1))
+dom_cube <- domain_func(is_cube, d = 3L)
+f_cube   <- 1   # true density
+
+t_cube <- rbind(
+  center = c(0.5, 0.5, 0.5),
+  face   = c(0.0, 0.5, 0.5),
+  edge   = c(0.0, 0.0, 0.5),
+  corner = c(0.0, 0.0, 0.0)
+)
+pt_cube <- c("Center", "Face center", "Edge midpoint", "Corner")
+```
+
+### Monte Carlo simulation
+
+```{r cube-sim, cache=TRUE}
+set.seed(2024L)
+res_cube <- array(
+  NA_real_,
+  dim      = c(R, length(ns), nrow(t_cube)),
+  dimnames = list(NULL, as.character(ns), pt_cube)
+)
+
+for (r in seq_len(R)) {
+  # Nested samples: use first n rows of a single large dataset
+  X_full <- matrix(runif(max(ns) * 3L), max(ns), 3L)
+  for (j in seq_along(ns)) {
+    X   <- X_full[seq_len(ns[j]), , drop = FALSE]
+    fit <- density_lp(X, t_grid = t_cube, h = h, m = m,
+                      domain = dom_cube, N_quad = N_quad_cube)
+    res_cube[r, j, ] <- fit$estimate
+  }
+}
+```
+
+### Results
+
+```{r cube-conv-plot, fig.height=8, fig.cap="Cube: bias and ± 1σ by sample size"}
+plot_convergence(res_cube, ns, f_cube, pt_cube,
+                 "Cube [0,1]³ — bias ± 1σ")
+```
+
+The central line shows the empirical bias $\mathbb{E}[\hat f(t)] - f(t)$ and the
+ribbon covers $\pm 1\sigma$. Both shrink as $n$ grows. Points near the boundary
+(face, edge, corner) exhibit larger bias and variance because $V(h)$ is truncated.
+
+```{r cube-mse-plot, fig.height=4, fig.cap="Cube: MSE on log-log scale"}
+plot_mse(res_cube, ns, f_cube, pt_cube, "Cube [0,1]³ — MSE")
+```
+
+All four curves decrease roughly in parallel, but boundary points maintain a
+higher MSE level for all $n$.
+
+---
+
+## 2. Polynomial sector $D_2$
+
+### Domain and target points
+
+$D_2 = \{(x, y) : x \in [0, 1],\; 0 \le y \le x^2\}$ has area $1/3$, so the
+uniform density is $f \equiv 3$ on $D_2$.
+
+| Label | $t$ | Position |
+|---|---|---|
+| Interior | $(0.6, 0.2)$ | well inside ($0.2 < 0.6^2 = 0.36$) |
+| Boundary ($y = 0$) | $(0.5, 0)$ | lower edge |
+| Apex | $(0, 0)$ | singular corner |
+
+```{r sector-setup}
+dom_sector2 <- domain_sector(2L)
+f_sector    <- 3   # true density (= 1 / area(D_2) = 1 / (1/3))
+
+t_sector <- rbind(
+  interior = c(0.6, 0.2),
+  boundary = c(0.5, 0.0),
+  apex     = c(0.0, 0.0)
+)
+pt_sector <- c("Interior", "Boundary (y = 0)", "Apex (0, 0)")
+```
+
+### Monte Carlo simulation
+
+```{r sector-sim-fun}
+# Uniform draws on D_2 via rejection from [0,1]^2 (acceptance rate = 1/3)
+sim_sector <- function(n) {
+  acc <- matrix(NA_real_, 0L, 2L)
+  while (nrow(acc) < n) {
+    need <- ceiling(3.5 * (n - nrow(acc)))
+    U    <- matrix(runif(need * 2L), need, 2L)
+    ok   <- U[, 2L] <= U[, 1L]^2
+    acc  <- rbind(acc, U[ok, , drop = FALSE])
+  }
+  acc[seq_len(n), ]
+}
+```
+
+```{r sector-sim, cache=TRUE}
+set.seed(2025L)
+res_sector <- array(
+  NA_real_,
+  dim      = c(R, length(ns), nrow(t_sector)),
+  dimnames = list(NULL, as.character(ns), pt_sector)
+)
+
+for (r in seq_len(R)) {
+  X_full <- sim_sector(max(ns))
+  for (j in seq_along(ns)) {
+    X   <- X_full[seq_len(ns[j]), , drop = FALSE]
+    fit <- density_lp(X, t_grid = t_sector, h = h, m = m,
+                      domain = dom_sector2, N_quad = N_quad_sector)
+    res_sector[r, j, ] <- fit$estimate
+  }
+}
+```
+
+### Results
+
+```{r sector-conv-plot, fig.height=5, fig.cap="Sector: bias and ± 1σ by sample size"}
+plot_convergence(res_sector, ns, f_sector, pt_sector,
+                 "Sector D₂ — bias ± 1σ")
+```
+
+At the apex $(0, 0)$, the domain degenerates ($V(h)$ has volume $h^3/3 \approx 0.009$),
+so very few data points contribute for small $n$, leading to high bias and variance.
+The estimator remains consistent but convergence is slow.
+
+```{r sector-mse-plot, fig.height=4, fig.cap="Sector: MSE on log-log scale"}
+plot_mse(res_sector, ns, f_sector, pt_sector, "Sector D₂ — MSE")
+```
+
+The interior point converges fastest. The apex exhibits the slowest convergence,
+illustrating the theoretical result that boundary regions with vanishing volume
+require larger $n$ to achieve the same precision.
