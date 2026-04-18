@@ -31,10 +31,11 @@ print.density_lp <- function(x, ...) {
 #' @param ... Passed to the underlying plot function.
 #' @return `x` invisibly.
 #' @export
-plot.density_lp <- function(x,
-                            main = paste0("densityLP  (h = ", x$h,
-                                          ", m = ", x$m, ")"),
-                            ...) {
+plot.density_lp <- function(
+  x,
+  main = paste0("densityLP  (h = ", x$h, ", m = ", x$m, ")"),
+  ...
+) {
   d <- x$domain$d
   if (d == 1L) {
     plot(
@@ -58,8 +59,11 @@ plot.density_lp <- function(x,
         x$t_grid[, 1L],
         x$t_grid[, 2L],
         col = grey(1 - x$estimate / max(x$estimate, na.rm = TRUE)),
-        pch = 15, cex = 0.5,
-        xlab = "x", ylab = "y", main = main,
+        pch = 15,
+        cex = 0.5,
+        xlab = "x",
+        ylab = "y",
+        main = main,
         ...
       )
     }
