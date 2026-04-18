@@ -277,13 +277,13 @@ sampler_rejection <- function(is_in_domain, n_estimate = 2000) {
 
 ---
 
-### 4.2 `sampler_spatstat` — exact pour d = 2
+### 4.2 `sampler_owin` — exact pour d = 2
 
 Exploite `spatstat.geom::runifpoint` pour un tirage exact sur le polygone
 $\mathcal{V}(h) = \mathcal{D} \cap ([t_1-h, t_1+h] \times [t_2-h, t_2+h])$.
 
 ```r
-sampler_spatstat <- function(win) {
+sampler_owin <- function(win) {
   # win : objet owin représentant D (coordonnées métriques projetées)
   function(N, t, h) {
     box  <- spatstat.geom::owin(c(t[1]-h, t[1]+h),
@@ -371,7 +371,7 @@ sampler_sector <- function(k) {
 
 | Sampler | Dimension | Volume | Précision | Dépendances |
 |---|---|---|---|---|
-| `sampler_spatstat` | d = 2 | exact | exact | `spatstat.geom` |
+| `sampler_owin` | d = 2 | exact | exact | `spatstat.geom` |
 | `sampler_qmc` | d ≥ 2 | MC | quasi-exacte | `randtoolbox` |
 | `sampler_rejection` | d ≥ 1 | MC | MC standard | — |
 | `sampler_sector` | d = 2 | exact (1D) | rejection | — |
@@ -409,7 +409,7 @@ lp_density_ppp <- function(pp,           # objet ppp (coordonnées déjà projet
   X   <- cbind(pp$x, pp$y)
 
   sampler <- switch(sampler_type,
-    spatstat  = sampler_spatstat(win),
+    spatstat  = sampler_owin(win),
     qmc       = sampler_qmc(owin_indicator(win)),
     rejection = sampler_rejection(owin_indicator(win))
   )
@@ -638,7 +638,7 @@ densityLP/
 │   ├── alphas.R          # build_alphas(), build_Phi()           [interne]
 │   ├── gram.R            # gram_matrix()                         [interne]
 │   ├── samplers.R        # sampler_rejection(), sampler_qmc(),   [interne]
-│   │                     # sampler_spatstat(), sampler_sector()
+│   │                     # sampler_owin(), sampler_sector()
 │   ├── domain.R          # domain_Rd(), domain_from_indicator(),           [exporté]
 │   │                     # domain_sector() — constructeurs S3 "lp_domain"
 │   ├── core.R            # density_lp_point()                    [interne]
@@ -731,7 +731,7 @@ Le cœur pur R (`lp_density_core`) n'a **aucune dépendance obligatoire**.
 - [ ] Validation sur $\mathcal{D} = [0,1]^2$ avec `domain_Rd()`
 
 ### Phase 2 — Samplers additionnels
-- [ ] `sampler_spatstat()` + test de convergence du volume
+- [ ] `sampler_owin()` + test de convergence du volume
 - [ ] `sampler_qmc()` + comparaison variance vs rejection
 - [ ] `sampler_sector()` pour $\mathcal{D}_1$ et $\mathcal{D}_{2.1}$
 - [ ] Validation numérique de `domain_sector()`

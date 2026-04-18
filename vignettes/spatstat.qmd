@@ -1,0 +1,106 @@
+---
+title: "density_lp_ppp: local polynomial estimation on spatial point patterns"
+format:
+  html:
+    toc: true
+    fig-width: 8
+    fig-height: 5
+    code-fold: true
+vignette: >
+  %\VignetteIndexEntry{density_lp_ppp: local polynomial estimation on spatial point patterns}
+  %\VignetteEngine{quarto::quarto}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(densityLP)
+library(spatstat.geom)
+library(spatstat.random)
+```
+
+`density_lp_ppp()` is a convenience wrapper around `density_lp()` designed
+for `ppp` objects from the **spatstat** ecosystem. It automatically derives
+the evaluation grid and the integration domain from `Window(pp)`, and returns
+a `spatstat.geom::im` pixel image. Calling `plot()` on the result uses
+`plot.im`, which overlays the window boundary and applies a colour scale.
+
+---
+
+## 1. Uniform distribution on the unit disc
+
+The true density is $f \equiv 1/\pi \approx 0.318$ everywhere on the disc.
+We simulate $n = 500$ uniform points, apply the local linear estimator
+($m = 1$, $h = 0.35$), and overlay the data.
+
+```{r disc-sim, cache=TRUE}
+set.seed(1L)
+pp_disc <- runifpoint(500L, win = disc())
+fit_disc <- density_lp_ppp(pp_disc, h = 0.35, m = 1L, N_quad = 500L)
+```
+
+```{r disc-plot, fig.cap="Local linear density estimate on the unit disc (n = 500, h = 0.35). True density: 1/π ≈ 0.318."}
+plot(fit_disc,
+     main  = expression("Local linear estimate  —  unit disc,  " * f == 1/pi),
+     riblab = "density")
+plot(pp_disc, add = TRUE, pch = ".", col = "#00000040")
+```
+
+The estimate is approximately constant at $1/\pi$ in the interior.
+Near the boundary the neighbourhood $V(h)$ is truncated, so more variance
+is expected for small $n$.
+
+---
+
+## 2. Inhomogeneous process on an L-shaped domain
+
+We construct an L-shaped polygon and simulate an inhomogeneous Poisson
+process with intensity
+$$
+\lambda(x, y) = 400\,e^{-4[(x-1.5)^2 + (y-0.4)^2]}
+              + 150\,e^{-4[(x-0.3)^2 + (y-1.5)^2]}.
+$$
+The density has two peaks: a strong one in the lower-right arm and a weaker
+one in the upper-left arm of the L.
+
+```{r L-setup}
+L_win <- owin(poly = list(
+  x = c(0, 2, 2, 1, 1, 0),
+  y = c(0, 0, 1, 1, 2, 2)
+))
+
+lambda_fun <- function(x, y) {
+  400 * exp(-4 * ((x - 1.5)^2 + (y - 0.4)^2)) +
+    150 * exp(-4 * ((x - 0.3)^2 + (y - 1.5)^2))
+}
+```
+
+```{r L-sim, cache=TRUE}
+set.seed(2L)
+pp_L   <- rpoispp(lambda_fun, win = L_win)
+fit_L  <- density_lp_ppp(pp_L, h = 0.3, m = 1L, N_quad = 500L)
+cat("n =", pp_L$n, "\n")
+```
+
+```{r L-plot, fig.cap="Local linear density estimate on the L-shaped domain. The window boundary and NA mask are handled automatically."}
+plot(fit_L,
+     main   = "Local linear estimate  —  L-shaped domain",
+     riblab = "density")
+plot(pp_L, add = TRUE, pch = ".", col = "#00000040")
+```
+
+```{r L-compare, fig.width=10, fig.height=4, fig.cap="Left: true intensity (scaled to density). Right: local linear estimate."}
+par(mfrow = c(1L, 2L))
+
+# True density (intensity / E[n])
+lambda_im <- as.im(lambda_fun, W = L_win)
+En        <- integral(lambda_im)
+true_im   <- lambda_im / En
+plot(true_im, main = "True density", riblab = "density")
+
+plot(fit_L, main = "Estimated density", riblab = "density")
+par(mfrow = c(1L, 1L))
+```
+
+The estimator correctly localises both peaks and respects the L-shape
+boundary: pixels outside the domain are `NA` and invisible in the plot.
