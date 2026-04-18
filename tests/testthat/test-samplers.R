@@ -68,48 +68,48 @@ test_that("sampler_sector: error when x range is empty", {
   expect_error(sampler_sector(2)(100L, t = c(-0.5, 0), h = 0.3))
 })
 
-# ── sampler_spatstat ───────────────────────────────────────────────────────────
+# ── sampler_owin ───────────────────────────────────────────────────────────
 
-test_that("sampler_spatstat: returns N points of dimension 2", {
+test_that("sampler_owin: returns N points of dimension 2", {
   skip_if_not_installed("spatstat.geom")
   set.seed(20L)
   win <- spatstat.geom::owin(c(0, 1), c(0, 1))
-  s <- sampler_spatstat(win)(100L, t = c(0.5, 0.5), h = 0.3)
+  s <- sampler_owin(win)(100L, t = c(0.5, 0.5), h = 0.3)
   expect_equal(nrow(s$points), 2L)
   expect_equal(ncol(s$points), 100L)
 })
 
-test_that("sampler_spatstat: n_total equals N_quad for full box", {
+test_that("sampler_owin: n_total equals N_quad for full box", {
   skip_if_not_installed("spatstat.geom")
   set.seed(21L)
   win <- spatstat.geom::owin(c(0, 1), c(0, 1))
   h <- 0.3
   t_pt <- c(0.5, 0.5)
-  s <- sampler_spatstat(win)(200L, t = t_pt, h = h)
+  s <- sampler_owin(win)(200L, t = t_pt, h = h)
   # Full box [0.2, 0.8]^2 is inside [0,1]^2 -> vol = (2h)^2 -> n_total = N
   expect_equal(s$n_total, 200L)
 })
 
-test_that("sampler_spatstat: n_total > N_quad at boundary (clipped box)", {
+test_that("sampler_owin: n_total > N_quad at boundary (clipped box)", {
   skip_if_not_installed("spatstat.geom")
   set.seed(22L)
   win <- spatstat.geom::owin(c(0, 1), c(0, 1))
   h <- 0.3
   t_pt <- c(0.1, 0.5) # box clips at x=0
   N <- 200L
-  s <- sampler_spatstat(win)(N, t = t_pt, h = h)
+  s <- sampler_owin(win)(N, t = t_pt, h = h)
   # x range: [0, 0.4], width = 0.4 < 2h = 0.6 -> vol < (2h)^2
   # n_total = round(N * (2h)^2 / vol) > N
   expect_gt(s$n_total, N)
 })
 
-test_that("sampler_spatstat: points lie within the owin", {
+test_that("sampler_owin: points lie within the owin", {
   skip_if_not_installed("spatstat.geom")
   set.seed(23L)
   win <- spatstat.geom::owin(c(0, 1), c(0, 1))
   t_pt <- c(0.5, 0.5)
   h <- 0.4
-  s <- sampler_spatstat(win)(150L, t = t_pt, h = h)
+  s <- sampler_owin(win)(150L, t = t_pt, h = h)
   pts_x <- s$points[1L, ] + t_pt[1L]
   pts_y <- s$points[2L, ] + t_pt[2L]
   expect_true(all(pts_x >= 0 - 1e-9 & pts_x <= 1 + 1e-9))

@@ -49,7 +49,7 @@ sampler_rejection <- function(is_in_domain) {
 #' @importFrom spatstat.geom owin intersect.owin area.owin
 #' @importFrom spatstat.random runifpoint
 #' @keywords internal
-sampler_spatstat <- function(win) {
+sampler_owin <- function(win) {
   function(N_quad, t, h) {
     box <- spatstat.geom::owin(
       c(t[1L] - h, t[1L] + h),

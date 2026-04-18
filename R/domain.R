@@ -52,3 +52,22 @@ domain_from_indicator <- function(is_in_domain, d) {
     label = "analytic domain"
   )
 }
+
+#' Domain defined by a spatstat window (d = 2)
+#'
+#' Wraps a [spatstat.geom::owin()] object as an `"lp_domain"`.  The quadrature
+#' sampler uses [spatstat.random::runifpoint()] on the exact intersection
+#' \eqn{V(h) = \mathcal{D} \cap [-h, h]^2}, giving exact area and unbiased
+#' Monte Carlo weights.
+#'
+#' @param win An `owin` object (spatstat.geom).
+#' @return An `"lp_domain"` object (d = 2).
+#' @export
+domain_from_owin <- function(win) {
+  stopifnot(inherits(win, "owin"))
+  new_lp_domain(
+    2L,
+    function() sampler_owin(win),
+    label = paste0("spatstat owin (", win$type, ")")
+  )
+}

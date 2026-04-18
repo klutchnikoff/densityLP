@@ -135,3 +135,38 @@ test_that("print.lp_domain: produces output", {
   dom <- domain_Rd(2L)
   expect_output(print(dom), "lp_domain")
 })
+
+# ── domain_from_owin ───────────────────────────────────────────────────────────
+
+test_that("domain_from_owin: returns lp_domain with d = 2", {
+  skip_if_not_installed("spatstat.geom")
+  win <- spatstat.geom::owin(c(0, 1), c(0, 1))
+  dom <- domain_from_owin(win)
+  expect_s3_class(dom, "lp_domain")
+  expect_equal(dom$d, 2L)
+})
+
+test_that("domain_from_owin: label contains 'owin'", {
+  skip_if_not_installed("spatstat.geom")
+  win <- spatstat.geom::disc()
+  dom <- domain_from_owin(win)
+  expect_match(dom$label, "owin")
+})
+
+test_that("domain_from_owin: error on non-owin input", {
+  expect_error(domain_from_owin(list(x = 1:3)), "owin")
+})
+
+test_that("domain_from_owin: sampled points lie inside the window", {
+  skip_if_not_installed("spatstat.geom")
+  set.seed(40L)
+  win <- spatstat.geom::owin(c(0, 1), c(0, 1))
+  dom <- domain_from_owin(win)
+  t_pt <- c(0.5, 0.5)
+  h <- 0.3
+  s <- dom$sampler_factory()(100L, t = t_pt, h = h)
+  pts_x <- s$points[1L, ] + t_pt[1L]
+  pts_y <- s$points[2L, ] + t_pt[2L]
+  expect_true(all(pts_x >= 0 - 1e-9 & pts_x <= 1 + 1e-9))
+  expect_true(all(pts_y >= 0 - 1e-9 & pts_y <= 1 + 1e-9))
+})
