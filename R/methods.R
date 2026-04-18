@@ -27,10 +27,14 @@ print.density_lp <- function(x, ...) {
 
 #' Plot a density_lp object
 #' @param x A `"density_lp"` object.
+#' @param main Plot title (default: bandwidth and degree).
 #' @param ... Passed to the underlying plot function.
 #' @return `x` invisibly.
 #' @export
-plot.density_lp <- function(x, ...) {
+plot.density_lp <- function(x,
+                            main = paste0("densityLP  (h = ", x$h,
+                                          ", m = ", x$m, ")"),
+                            ...) {
   d <- x$domain$d
   if (d == 1L) {
     plot(
@@ -39,7 +43,7 @@ plot.density_lp <- function(x, ...) {
       type = "l",
       xlab = "t",
       ylab = "Estimated density",
-      main = paste0("densityLP  (h = ", x$h, ", m = ", x$m, ")"),
+      main = main,
       ...
     )
   } else if (d == 2L) {
@@ -47,26 +51,15 @@ plot.density_lp <- function(x, ...) {
     ys <- sort(unique(x$t_grid[, 2L]))
     if (length(xs) * length(ys) == nrow(x$t_grid)) {
       Z <- matrix(x$estimate, nrow = length(xs), ncol = length(ys))
-      image(
-        xs,
-        ys,
-        Z,
-        xlab = "x",
-        ylab = "y",
-        main = paste0("densityLP  (h = ", x$h, ", m = ", x$m, ")"),
-        ...
-      )
+      image(xs, ys, Z, xlab = "x", ylab = "y", main = main, ...)
     } else {
       warning("plot.density_lp: irregular grid, falling back to scatter plot.")
       plot(
         x$t_grid[, 1L],
         x$t_grid[, 2L],
         col = grey(1 - x$estimate / max(x$estimate, na.rm = TRUE)),
-        pch = 15,
-        cex = 0.5,
-        xlab = "x",
-        ylab = "y",
-        main = paste0("densityLP  (h = ", x$h, ", m = ", x$m, ")"),
+        pch = 15, cex = 0.5,
+        xlab = "x", ylab = "y", main = main,
         ...
       )
     }

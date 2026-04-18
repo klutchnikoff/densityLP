@@ -1,0 +1,104 @@
+
+
+# densityLP
+
+**Local Polynomial Density Estimation on Complicated Domains**
+
+`densityLP` implements the nonparametric local polynomial density
+estimator of Bertin, Klutchnikoff and Ouimet (*Bernoulli*, forthcoming)
+for multivariate densities on known domains of arbitrary dimension,
+including domains with sharp concavities, holes, and polynomial sectors.
+The C++ backend (RcppArmadillo) provides a ×10 speedup over a pure-R
+implementation.
+
+## Installation
+
+``` r
+# Development version
+remotes::install_github("nklutchnikoff/densityLP")
+```
+
+## Quick start
+
+### Local linear estimation on the unit square
+
+``` r
+library(densityLP)
+
+set.seed(1L)
+n <- 500L
+X <- matrix(runif(n * 2L), n, 2L)   # uniform on [0,1]^2
+
+is_square <- function(pts) apply(pts, 1L, function(x) all(x >= 0 & x <= 1))
+dom       <- domain_from_indicator(is_square, d = 2L)
+
+grid  <- seq(0.1, 0.9, length.out = 20L)
+t_grid <- as.matrix(expand.grid(x = grid, y = grid))
+
+fit <- density_lp(X, t_grid = t_grid, h = 0.2, m = 1L,
+                  domain = dom, N_quad = 500L)
+plot(fit, main = "Local linear estimate — unit square")
+```
+
+![](README_files/figure-commonmark/square-example-1.png)
+
+### Spatial point pattern on an L-shaped domain
+
+`density_lp_ppp()` accepts any `ppp` object from
+[spatstat](https://spatstat.org). It derives the evaluation grid and the
+integration domain automatically from `Window(pp)` and returns a
+`spatstat.geom::im` pixel image.
+
+``` r
+library(spatstat.geom)
+```
+
+    Loading required package: spatstat.data
+
+    Loading required package: spatstat.univar
+
+    spatstat.univar 3.1-7
+
+    spatstat.geom 3.7-3
+
+``` r
+library(spatstat.random)
+```
+
+    spatstat.random 3.4-5
+
+``` r
+# L-shaped window and inhomogeneous Poisson process
+L_win <- owin(poly = list(x = c(0, 2, 2, 1, 1, 0),
+                          y = c(0, 0, 1, 1, 2, 2)))
+
+lambda_fun <- function(x, y) {
+  400 * exp(-4 * ((x - 1.5)^2 + (y - 0.4)^2)) +
+    150 * exp(-4 * ((x - 0.3)^2 + (y - 1.5)^2))
+}
+
+set.seed(2L)
+pp  <- rpoispp(lambda_fun, win = L_win)
+fit <- density_lp_ppp(pp, h = 0.3, m = 1L, N_quad = 500L)
+
+plot(fit, main = "Local linear estimate — L-shaped domain")
+plot(pp, add = TRUE, pch = ".", col = "#00000050")
+```
+
+![](README_files/figure-commonmark/L-example-1.png)
+
+Pixels outside the window are automatically set to `NA`.
+
+## Vignettes
+
+| Vignette      | Description                                               |
+|---------------|-----------------------------------------------------------|
+| `convergence` | MSE convergence study on the cube and a polynomial sector |
+| `benchmark`   | R vs C++ timing: `gram_matrix` and full pipeline          |
+| `spatstat`    | `density_lp_ppp` on synthetic spatial point patterns      |
+
+## Reference
+
+Bertin, K., Klutchnikoff, N. and Ouimet, F. (forthcoming). Local
+polynomial estimation of the density on complicated domains.
+*Bernoulli*.

@@ -4,10 +4,12 @@
 \alias{plot.density_lp}
 \title{Plot a density_lp object}
 \usage{
-\method{plot}{density_lp}(x, ...)
+\method{plot}{density_lp}(x, main = paste0("densityLP  (h = ", x$h, ", m = ", x$m, ")"), ...)
 }
 \arguments{
 \item{x}{A \code{"density_lp"} object.}
+
+\item{main}{Plot title (default: bandwidth and degree).}
 
 \item{...}{Passed to the underlying plot function.}
 }

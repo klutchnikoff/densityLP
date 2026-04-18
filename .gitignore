@@ -18,9 +18,14 @@
 # Quarto rendered output (vignettes)
 vignettes/*.html
 vignettes/*_files/
+vignettes/*_cache/
+
+# testthat side-effects
+tests/testthat/Rplots.pdf
 
 # macOS
 .DS_Store
 
 # testthat snapshots (keep only intentional ones)
 tests/testthat/_snaps/
+README_files/
