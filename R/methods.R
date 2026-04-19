@@ -9,19 +9,17 @@
 #' @export
 print.density_lp <- function(x, ...) {
   cat("Local polynomial density estimate\n")
-  cat("  Domain :", x$domain$label, "\n")
-  cat("  d      :", x$domain$d, "\n")
-  cat("  h      :", x$h, "\n")
-  cat("  m      :", x$m, "\n")
-  cat("  N_quad :", x$N_quad, "\n")
-  cat("  Points :", nrow(x$t_grid), "\n")
-  cat(
-    "  Range  : [",
-    round(min(x$estimate), 5),
-    ",",
-    round(max(x$estimate), 5),
-    "]\n"
-  )
+  cat(sprintf("  Domain : %s\n", x$domain$label))
+  cat(sprintf("  d      : %d\n", x$domain$d))
+  cat(sprintf("  h      : %g\n", x$h))
+  cat(sprintf("  m      : %d\n", x$m))
+  cat(sprintf("  N_quad : %d\n", x$N_quad))
+  cat(sprintf("  Points : %d\n", nrow(x$t_grid)))
+  cat(sprintf(
+    "  Range  : [%.5g, %.5g]\n",
+    min(x$estimate, na.rm = TRUE),
+    max(x$estimate, na.rm = TRUE)
+  ))
   invisible(x)
 }
 

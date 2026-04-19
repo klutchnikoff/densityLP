@@ -77,6 +77,33 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
   }
 
   idx <- which(scores == min(scores, na.rm = TRUE), arr.ind = TRUE)[1L, ]
+
+  fail_rate <- n_fail[idx[1L], idx[2L]] / n
+  if (fail_rate >= 0.25) {
+    warning(sprintf(
+      paste0(
+        "%d/%d LOO evaluations failed for the selected parameters",
+        " (m = %d, h = %g).",
+        " The CV score is unreliable: consider a larger h or a coarser grid."
+      ),
+      n_fail[idx[1L], idx[2L]],
+      n,
+      m_grid[idx[1L]],
+      h_grid[idx[2L]]
+    ))
+  } else if (fail_rate >= 0.10) {
+    warning(sprintf(
+      paste0(
+        "%d/%d LOO evaluations failed for the selected parameters",
+        " (m = %d, h = %g).",
+        " Results should be interpreted with caution."
+      ),
+      n_fail[idx[1L], idx[2L]],
+      n,
+      m_grid[idx[1L]],
+      h_grid[idx[2L]]
+    ))
+  }
   structure(
     list(
       m_hat = m_grid[idx[1L]],
@@ -122,23 +149,15 @@ cv_density_lp_ppp <- function(pp, h_grid, m_grid = 0:3, N_quad = 500L) {
 #' @return `x` invisibly.
 #' @export
 print.cv_density_lp <- function(x, ...) {
+  score <- x$scores[paste0("m=", x$m_hat), as.character(round(x$h_hat, 6L))]
   cat("LOO cross-validation -- local polynomial density\n")
-  cat("  Selected m :", x$m_hat, "\n")
-  cat("  Selected h :", round(x$h_hat, 6L), "\n")
-  cat(
-    "  CV score   :",
-    round(
-      x$scores[paste0("m=", x$m_hat), as.character(round(x$h_hat, 6L))],
-      5L
-    ),
-    "\n"
-  )
-  cat(
-    "  Grid       :",
+  cat(sprintf("  Selected m : %d\n", x$m_hat))
+  cat(sprintf("  Selected h : %.6g\n", x$h_hat))
+  cat(sprintf("  CV score   : %.5g\n", score))
+  cat(sprintf(
+    "  Grid       : %d degree(s) x %d bandwidth(s)\n",
     length(x$m_grid),
-    "degree(s) x",
-    length(x$h_grid),
-    "bandwidth(s)\n"
-  )
+    length(x$h_grid)
+  ))
   invisible(x)
 }
