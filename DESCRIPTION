@@ -16,7 +16,7 @@ Description: Nonparametric local polynomial estimator for multivariate density
     domains with sharp concavities, holes, and local pinches such as polynomial
     sectors. Implements the procedure of Bertin, Klutchnikoff and Ouimet
     (Bernoulli, forthcoming).
-License: GPL-3
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
