@@ -4,14 +4,12 @@
 \alias{domain_from_indicator}
 \title{Domain defined by an indicator function}
 \usage{
-domain_from_indicator(is_in_domain, d)
+domain_from_indicator(is_in_domain)
 }
 \arguments{
-\item{is_in_domain}{Vectorised function \code{f(X_mat)} where \code{X_mat} is an
-\verb{n x d} numeric matrix of points in R^d and the return value is a logical
-vector of length \code{n}.}
-
-\item{d}{Space dimension (integer >= 1).}
+\item{is_in_domain}{Vectorised indicator function of \code{d} arguments (one per
+coordinate axis), returning a logical vector of length \code{n}.  The dimension
+\code{d} is inferred from \code{length(formals(is_in_domain))}.}
 }
 \value{
 An \code{"domain_lp"} object.

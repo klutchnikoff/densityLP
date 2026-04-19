@@ -11,8 +11,8 @@ make_square_cv <- function(
 ) {
   set_seed()
   X <- matrix(runif(n * 2L), n, 2L)
-  is_sq <- function(M) apply(M, 1L, function(x) all(x >= 0 & x <= 1))
-  domain <- domain_from_indicator(is_sq, d = 2L)
+  is_sq <- function(x, y) x >= 0 & x <= 1 & y >= 0 & y <= 1
+  domain <- domain_from_indicator(is_sq)
   cv_density_lp(
     X,
     h_grid = h_grid,
@@ -32,12 +32,12 @@ test_that("cv_density_lp: score matrix has correct dimensions", {
   m_grid <- 0:2
   set_seed()
   X <- matrix(runif(60L * 2L), 60L, 2L)
-  is_sq <- function(M) apply(M, 1L, function(x) all(x >= 0 & x <= 1))
+  is_sq <- function(x, y) x >= 0 & x <= 1 & y >= 0 & y <= 1
   cv <- cv_density_lp(
     X,
     h_grid = h_grid,
     m_grid = m_grid,
-    domain = domain_from_indicator(is_sq, d = 2L),
+    domain = domain_from_indicator(is_sq),
     N_quad = 100L
   )
   expect_equal(dim(cv$scores), c(length(m_grid), length(h_grid)))
@@ -64,12 +64,12 @@ test_that("cv_density_lp: grids stored in output match inputs", {
   m_grid <- c(0L, 1L)
   set_seed()
   X <- matrix(runif(60L * 2L), 60L, 2L)
-  is_sq <- function(M) apply(M, 1L, function(x) all(x >= 0 & x <= 1))
+  is_sq <- function(x, y) x >= 0 & x <= 1 & y >= 0 & y <= 1
   cv <- cv_density_lp(
     X,
     h_grid = h_grid,
     m_grid = m_grid,
-    domain = domain_from_indicator(is_sq, d = 2L),
+    domain = domain_from_indicator(is_sq),
     N_quad = 100L
   )
   expect_equal(cv$h_grid, h_grid)

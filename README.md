@@ -29,8 +29,8 @@ set.seed(1L)
 n <- 500L
 X <- matrix(runif(n * 2L), n, 2L)   # uniform on [0,1]^2
 
-is_square <- function(pts) apply(pts, 1L, function(x) all(x >= 0 & x <= 1))
-dom       <- domain_from_indicator(is_square, d = 2L)
+is_square <- function(x, y) x >= 0 & x <= 1 & y >= 0 & y <= 1
+dom       <- domain_from_indicator(is_square)
 
 grid  <- seq(0.1, 0.9, length.out = 20L)
 t_grid <- as.matrix(expand.grid(x = grid, y = grid))

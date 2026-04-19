@@ -16,7 +16,8 @@
 #' accepted points (those in \eqn{V(h)}).  The count `N_in` is therefore
 #' variable and carries the domain-size information needed by `gram_matrix`.
 #'
-#' @param is_in_domain Vectorised function: n x d matrix -> logical vector.
+#' @param is_in_domain Vectorised function of `d` arguments (one per coordinate
+#'   axis), returning a logical vector.
 #' @return Closure `function(N_quad, t, h)`.
 #' @importFrom stats runif
 #' @keywords internal
@@ -24,7 +25,8 @@ sampler_rejection <- function(is_in_domain) {
   function(N_quad, t, h) {
     d <- length(t)
     U <- matrix(runif(N_quad * d, -h, h), N_quad, d)
-    ok <- is_in_domain(sweep(U, 2L, t, "+"))
+    X <- sweep(U, 2L, t, "+")
+    ok <- do.call(is_in_domain, lapply(seq_len(d), function(j) X[, j]))
     pts <- t(U[ok, , drop = FALSE])
     if (ncol(pts) == 0L) {
       stop(

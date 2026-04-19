@@ -35,8 +35,8 @@ test_that("domain_Rd: all N_quad points accepted (no rejection)", {
 
 test_that("domain_from_indicator: rejects points outside unit disk", {
   set.seed(20L)
-  is_in <- function(X) rowSums(X^2) <= 1
-  dom <- domain_from_indicator(is_in, d = 2L)
+  is_in <- function(x, y) x^2 + y^2 <= 1
+  dom <- domain_from_indicator(is_in)
   expect_s3_class(dom, "domain_lp")
   s <- dom$sampler_factory()(100L, t = c(0, 0), h = 0.5)
   pts_global <- sweep(t(s$points), 2L, c(0, 0), "+")
@@ -45,8 +45,8 @@ test_that("domain_from_indicator: rejects points outside unit disk", {
 
 test_that("domain_from_indicator: n_total is positive and points are accepted", {
   set.seed(21L)
-  is_in <- function(X) rowSums(X^2) <= 1
-  dom <- domain_from_indicator(is_in, d = 2L)
+  is_in <- function(x, y) x^2 + y^2 <= 1
+  dom <- domain_from_indicator(is_in)
   s <- dom$sampler_factory()(500L, t = c(0, 0), h = 0.5)
   expect_true(s$n_total > 0L)
   expect_true(ncol(s$points) > 0L)

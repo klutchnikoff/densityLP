@@ -2,7 +2,7 @@
 
 test_that("sampler_rejection: points have correct dimension", {
   set.seed(1L)
-  is_in <- function(X) rep(TRUE, nrow(X))
+  is_in <- function(...) rep(TRUE, length(..1))
   s <- sampler_rejection(is_in)(100L, t = c(0.5, 0.5), h = 0.3)
   expect_equal(nrow(s$points), 2L)
   expect_true(ncol(s$points) > 0L)
@@ -10,7 +10,7 @@ test_that("sampler_rejection: points have correct dimension", {
 
 test_that("sampler_rejection: n_total equals N_quad", {
   set.seed(2L)
-  is_in <- function(X) rep(TRUE, nrow(X))
+  is_in <- function(...) rep(TRUE, length(..1))
   s <- sampler_rejection(is_in)(200L, t = c(0.5, 0.5), h = 0.3)
   expect_equal(s$n_total, 200L)
 })
@@ -18,21 +18,21 @@ test_that("sampler_rejection: n_total equals N_quad", {
 test_that("sampler_rejection: all points lie in [-h, h]^d", {
   set.seed(3L)
   h <- 0.4
-  is_in <- function(X) rep(TRUE, nrow(X))
+  is_in <- function(...) rep(TRUE, length(..1))
   s <- sampler_rejection(is_in)(300L, t = c(0.5, 0.5), h = h)
   expect_true(all(abs(s$points) <= h + 1e-9))
 })
 
 test_that("sampler_rejection: points respect domain constraint", {
   set.seed(4L)
-  is_in <- function(X) rowSums(X^2) <= 1
+  is_in <- function(x, y) x^2 + y^2 <= 1
   s <- sampler_rejection(is_in)(300L, t = c(0, 0), h = 0.5)
   pts_global <- sweep(t(s$points), 2L, c(0, 0), "+")
   expect_true(all(rowSums(pts_global^2) <= 1 + 1e-9))
 })
 
 test_that("sampler_rejection: error when V(h) is empty", {
-  is_in <- function(X) rep(FALSE, nrow(X))
+  is_in <- function(...) rep(FALSE, length(..1))
   expect_error(sampler_rejection(is_in)(100L, t = c(0.5, 0.5), h = 0.3))
 })
 

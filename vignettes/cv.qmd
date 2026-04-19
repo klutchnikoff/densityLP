@@ -43,8 +43,8 @@ set.seed(1L)
 n      <- 2000L
 X_sq   <- matrix(runif(n * 2L), n, 2L)
 
-is_sq  <- function(M) apply(M, 1L, function(x) all(x >= 0 & x <= 1))
-dom_sq <- domain_from_indicator(is_sq, d = 2L)
+is_sq  <- function(x, y) x >= 0 & x <= 1 & y >= 0 & y <= 1
+dom_sq <- domain_from_indicator(is_sq)
 
 h_grid <- seq(0.02, 0.5, by = 0.02)
 m_grid <- 0:2

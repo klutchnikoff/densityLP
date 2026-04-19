@@ -29,23 +29,21 @@ domain_Rd <- function(d) {
   stopifnot(is.numeric(d), length(d) == 1L, d >= 1, d == floor(d))
   d <- as.integer(d)
 
-  # is_in_domain always returns TRUE: the full box [-h, h]^d is valid
-  is_in <- function(X_mat) rep(TRUE, nrow(X_mat))
+  is_in <- function(...) rep(TRUE, length(..1))
   new_domain_lp(d, function() sampler_rejection(is_in), label = "R^d")
 }
 
 #' Domain defined by an indicator function
 #'
-#' @param is_in_domain Vectorised function `f(X_mat)` where `X_mat` is an
-#'   `n x d` numeric matrix of points in R^d and the return value is a logical
-#'   vector of length `n`.
-#' @param d Space dimension (integer >= 1).
+#' @param is_in_domain Vectorised indicator function of `d` arguments (one per
+#'   coordinate axis), returning a logical vector of length `n`.  The dimension
+#'   `d` is inferred from `length(formals(is_in_domain))`.
 #' @return An `"domain_lp"` object.
 #' @export
-domain_from_indicator <- function(is_in_domain, d) {
+domain_from_indicator <- function(is_in_domain) {
   stopifnot(is.function(is_in_domain))
-  stopifnot(is.numeric(d), length(d) == 1L, d >= 1, d == floor(d))
-  d <- as.integer(d)
+  d <- as.integer(length(formals(is_in_domain)))
+  stopifnot(d >= 1L)
   new_domain_lp(
     d,
     function() sampler_rejection(is_in_domain),

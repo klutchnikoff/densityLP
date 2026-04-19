@@ -7,7 +7,8 @@
 sampler_rejection(is_in_domain)
 }
 \arguments{
-\item{is_in_domain}{Vectorised function: n x d matrix -> logical vector.}
+\item{is_in_domain}{Vectorised function of \code{d} arguments (one per coordinate
+axis), returning a logical vector.}
 }
 \value{
 Closure \verb{function(N_quad, t, h)}.
