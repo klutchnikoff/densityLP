@@ -1,0 +1,175 @@
+---
+title: "Bandwidth and degree selection by LOO cross-validation"
+format:
+  html:
+    toc: true
+    fig-width: 8
+    fig-height: 5
+    code-fold: true
+vignette: >
+  %\VignetteIndexEntry{Bandwidth and degree selection by LOO cross-validation}
+  %\VignetteEngine{quarto::quarto}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(densityLP)
+```
+
+`cv_density_lp()` selects the bandwidth $h$ and polynomial degree $m$ jointly
+by minimising the leave-one-out log-likelihood score
+
+$$\mathrm{CV}(m, h) = -\frac{1}{n}\sum_{i=1}^n \log \hat f_{\gamma,-i}(X_i),$$
+
+where the LOO estimate uses the algebraic correction
+$$\hat f_{\gamma,-i}(X_i)
+  = \frac{n\,\hat f_\gamma(X_i) - h^{-d}\|H_0^{(X_i)}\|^2}{n-1}$$
+and $\|H_0^{(X_i)}\|^2 = (B_{X_i}^{-1})_{11}$ is the self-influence scalar
+returned as a byproduct of the C++ pipeline. The full score matrix
+`cv$scores` ($|\mathcal{M}| \times |\mathcal{H}|$) is stored, enabling
+diagnostic plots of the CV surface.
+
+---
+
+## 1. Uniform density on the unit square
+
+The true density is $f \equiv 1$ on $[0,1]^2$. A flat density is best
+estimated with a large bandwidth, so CV should select the largest $h$ in the
+grid and prefer $m = 0$ (local constant).
+
+```{r square-setup}
+set.seed(1L)
+n      <- 2000L
+X_sq   <- matrix(runif(n * 2L), n, 2L)
+
+is_sq  <- function(M) apply(M, 1L, function(x) all(x >= 0 & x <= 1))
+dom_sq <- domain_from_indicator(is_sq, d = 2L)
+
+h_grid <- seq(0.02, 0.5, by = 0.02)
+m_grid <- 0:2
+```
+
+```{r square-cv, cache=TRUE}
+cv_sq <- cv_density_lp(X_sq, h_grid = h_grid, m_grid = m_grid,
+                       domain = dom_sq, N_quad = 300L)
+cv_sq
+```
+
+```{r square-cv-plot, fig.cap="CV score vs bandwidth for each degree (uniform density). The star marks the selected pair."}
+pal <- c("m=0" = "#EF4444", "m=1" = "#3B82F6", "m=2" = "#22C55E")
+
+scores_plot <- cv_sq$scores
+scores_plot[!is.finite(scores_plot)] <- NA
+
+ylim <- range(scores_plot, na.rm = TRUE)
+
+plot(cv_sq$h_grid, scores_plot["m=0", ],
+     type = "b", pch = 16, lwd = 2, col = pal["m=0"],
+     xlab = "h", ylab = "CV score  (lower = better)",
+     main = "LOO CV — unit square, f ≡ 1",
+     ylim = ylim)
+lines(cv_sq$h_grid, scores_plot["m=1", ],
+      type = "b", pch = 16, lwd = 2, col = pal["m=1"])
+lines(cv_sq$h_grid, scores_plot["m=2", ],
+      type = "b", pch = 16, lwd = 2, col = pal["m=2"])
+
+abline(v = cv_sq$h_hat, lty = 2, col = "grey50")
+best <- cv_sq$scores[paste0("m=", cv_sq$m_hat),
+                     as.character(round(cv_sq$h_hat, 6L))]
+points(cv_sq$h_hat, best, pch = 8, cex = 2, lwd = 2, col = "black")
+legend("topright", legend = paste0("m = ", m_grid),
+       col = pal, pch = 16, lty = 1, lwd = 2, bty = "n")
+```
+
+CV correctly identifies that a flat density benefits from a large bandwidth.
+The $m = 2$ curve has gaps where the LOO denominator was negative (V(h) too
+small for the quadrature budget at that observation).
+
+```{r square-fit, cache=TRUE}
+t_grid_sq <- as.matrix(expand.grid(
+  x = seq(0.05, 0.95, length.out = 25L),
+  y = seq(0.05, 0.95, length.out = 25L)
+))
+
+fit_sq <- density_lp(X_sq, t_grid = t_grid_sq,
+                     h = cv_sq$h_hat, m = cv_sq$m_hat,
+                     domain = dom_sq, N_quad = 500L)
+```
+
+```{r square-fit-plot, fig.cap="Estimated density with CV-selected parameters. True value: f ≡ 1."}
+plot(fit_sq,
+     main = sprintf("Estimate  (m = %d, h = %.2f) — true f ≡ 1",
+                    cv_sq$m_hat, cv_sq$h_hat))
+```
+
+---
+
+## 2. Non-uniform density on the unit square
+
+We now simulate $n = 200$ observations from
+$f(x, y) = f_{\mathrm{B}(2,5)}(x)\,f_{\mathrm{B}(2,5)}(y)$,
+a density concentrated near $(0.3, 0.3)$ with a sharp drop towards $(1,1)$.
+A smaller bandwidth is needed to track the gradient.
+
+```{r beta-setup}
+set.seed(2L)
+X_bt <- cbind(rbeta(n, 2, 5), rbeta(n, 2, 5))
+```
+
+```{r beta-cv, cache=TRUE}
+cv_bt <- cv_density_lp(X_bt, h_grid = h_grid, m_grid = m_grid,
+                       domain = dom_sq, N_quad = 300L)
+cv_bt
+```
+
+```{r beta-cv-plot, fig.cap="CV score vs bandwidth (Beta(2,5) marginals). The selected h is smaller than for the uniform case."}
+scores_bt <- cv_bt$scores
+scores_bt[!is.finite(scores_bt)] <- NA
+
+ylim_bt <- range(scores_bt, na.rm = TRUE)
+
+plot(cv_bt$h_grid, scores_bt["m=0", ],
+     type = "b", pch = 16, lwd = 2, col = pal["m=0"],
+     xlab = "h", ylab = "CV score  (lower = better)",
+     main = "LOO CV — unit square, f = Beta(2,5) × Beta(2,5)",
+     ylim = ylim_bt)
+lines(cv_bt$h_grid, scores_bt["m=1", ],
+      type = "b", pch = 16, lwd = 2, col = pal["m=1"])
+lines(cv_bt$h_grid, scores_bt["m=2", ],
+      type = "b", pch = 16, lwd = 2, col = pal["m=2"])
+
+abline(v = cv_bt$h_hat, lty = 2, col = "grey50")
+best_bt <- cv_bt$scores[paste0("m=", cv_bt$m_hat),
+                        as.character(round(cv_bt$h_hat, 6L))]
+points(cv_bt$h_hat, best_bt, pch = 8, cex = 2, lwd = 2, col = "black")
+legend("topright", legend = paste0("m = ", m_grid),
+       col = pal, pch = 16, lty = 1, lwd = 2, bty = "n")
+```
+
+```{r beta-fit, cache=TRUE}
+fit_bt <- density_lp(X_bt, t_grid = t_grid_sq,
+                     h = cv_bt$h_hat, m = cv_bt$m_hat,
+                     domain = dom_sq, N_quad = 500L)
+```
+
+```{r beta-compare, fig.width=10, fig.height=4, fig.cap="Left: true density. Right: CV-selected estimate."}
+f_true_bt <- function(x, y) dbeta(x, 2, 5) * dbeta(y, 2, 5)
+
+par(mfrow = c(1L, 2L))
+
+xs <- seq(0.05, 0.95, length.out = 25L)
+ys <- xs
+Z_true <- outer(xs, ys, f_true_bt)
+image(xs, ys, Z_true,
+      xlab = "x", ylab = "y",
+      main = "True density  f = B(2,5) × B(2,5)")
+
+plot(fit_bt,
+     main = sprintf("Estimate  (m = %d, h = %.2f)", cv_bt$m_hat, cv_bt$h_hat))
+
+par(mfrow = c(1L, 1L))
+```
+
+The CV correctly shifts to a smaller bandwidth for the structured density,
+and the estimate tracks the concentration near $(0.3, 0.3)$.
