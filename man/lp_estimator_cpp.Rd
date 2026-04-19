@@ -23,8 +23,6 @@ lp_estimator_cpp(U_quad, n_total, U_obs, h, alphas)
 Scalar density estimate \eqn{\hat f(t)}.
 }
 \description{
-Performs steps 2–7 of the point estimator: Gram matrix, Cholesky,
-forward solves, observation filtering, and final summation.
-Step 1 (sampling) and alpha construction remain in R.
+Full local-polynomial density estimator at one point (C++ backend)
 }
 \keyword{internal}

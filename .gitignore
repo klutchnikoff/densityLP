@@ -9,6 +9,10 @@
 /*.tar.gz
 /*.Rcheck/
 
+# Compiled C++ objects and shared library
+src/*.o
+src/*.so
+
 # roxygen2-generated files: tracked in git (needed for install_github())
 # Do not edit NAMESPACE or man/*.Rd by hand — run roxygen2::roxygenise()
 

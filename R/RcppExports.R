@@ -13,11 +13,25 @@ gram_matrix_cpp <- function(U, h, alphas, n_total) {
     .Call(`_densityLP_gram_matrix_cpp`, U, h, alphas, n_total)
 }
 
-#' Full local-polynomial density estimator at one point (C++ backend)
+#' Full LP estimator with LOO self-influence term (C++ backend)
 #'
-#' Performs steps 2–7 of the point estimator: Gram matrix, Cholesky,
-#' forward solves, observation filtering, and final summation.
-#' Step 1 (sampling) and alpha construction remain in R.
+#' Identical to [lp_estimator_cpp()] but additionally returns
+#' \eqn{\|H_0\|^2 = (B_\gamma^{-1})_{11}}, the self-influence scalar needed
+#' for the algebraic LOO correction
+#' \eqn{\hat f_{\gamma,-i}(X_i) = (n \hat f_\gamma(X_i) - h^{-d}\|H_0\|^2) / (n-1)}.
+#'
+#' @param U_quad Numeric matrix d x N of quadrature points centred at t.
+#' @param n_total Integer, total draws in \eqn{[-h,h]^d}.
+#' @param U_obs Numeric matrix d x n of all observations centred at t.
+#' @param h Bandwidth (scalar > 0).
+#' @param alphas Integer matrix D_m x d of multi-indices.
+#' @return Numeric vector of length 2: \code{c(estimate, norm_H0_sq)}.
+#' @keywords internal
+lp_estimator_loo_cpp <- function(U_quad, n_total, U_obs, h, alphas) {
+    .Call(`_densityLP_lp_estimator_loo_cpp`, U_quad, n_total, U_obs, h, alphas)
+}
+
+#' Full local-polynomial density estimator at one point (C++ backend)
 #'
 #' @param U_quad Numeric matrix d x N of quadrature points centred at t
 #'   (output of the domain sampler).

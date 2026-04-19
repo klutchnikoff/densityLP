@@ -25,6 +25,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// lp_estimator_loo_cpp
+arma::vec lp_estimator_loo_cpp(const arma::mat& U_quad, int n_total, const arma::mat& U_obs, double h, const arma::Mat<int>& alphas);
+RcppExport SEXP _densityLP_lp_estimator_loo_cpp(SEXP U_quadSEXP, SEXP n_totalSEXP, SEXP U_obsSEXP, SEXP hSEXP, SEXP alphasSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type U_quad(U_quadSEXP);
+    Rcpp::traits::input_parameter< int >::type n_total(n_totalSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type U_obs(U_obsSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type alphas(alphasSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_estimator_loo_cpp(U_quad, n_total, U_obs, h, alphas));
+    return rcpp_result_gen;
+END_RCPP
+}
 // lp_estimator_cpp
 double lp_estimator_cpp(const arma::mat& U_quad, int n_total, const arma::mat& U_obs, double h, const arma::Mat<int>& alphas);
 RcppExport SEXP _densityLP_lp_estimator_cpp(SEXP U_quadSEXP, SEXP n_totalSEXP, SEXP U_obsSEXP, SEXP hSEXP, SEXP alphasSEXP) {
@@ -43,6 +58,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_densityLP_gram_matrix_cpp", (DL_FUNC) &_densityLP_gram_matrix_cpp, 4},
+    {"_densityLP_lp_estimator_loo_cpp", (DL_FUNC) &_densityLP_lp_estimator_loo_cpp, 5},
     {"_densityLP_lp_estimator_cpp", (DL_FUNC) &_densityLP_lp_estimator_cpp, 5},
     {NULL, NULL, 0}
 };

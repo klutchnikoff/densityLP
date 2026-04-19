@@ -56,27 +56,26 @@ arma::mat gram_matrix_cpp(const arma::mat&      U,
   return weight * (Phi * Phi.t());
 }
 
-//' Full local-polynomial density estimator at one point (C++ backend)
+//' Full LP estimator with LOO self-influence term (C++ backend)
 //'
-//' Performs steps 2–7 of the point estimator: Gram matrix, Cholesky,
-//' forward solves, observation filtering, and final summation.
-//' Step 1 (sampling) and alpha construction remain in R.
+//' Identical to [lp_estimator_cpp()] but additionally returns
+//' \eqn{\|H_0\|^2 = (B_\gamma^{-1})_{11}}, the self-influence scalar needed
+//' for the algebraic LOO correction
+//' \eqn{\hat f_{\gamma,-i}(X_i) = (n \hat f_\gamma(X_i) - h^{-d}\|H_0\|^2) / (n-1)}.
 //'
-//' @param U_quad Numeric matrix d x N of quadrature points centred at t
-//'   (output of the domain sampler).
+//' @param U_quad Numeric matrix d x N of quadrature points centred at t.
 //' @param n_total Integer, total draws in \eqn{[-h,h]^d}.
-//' @param U_obs Numeric matrix d x n of all observations centred at t
-//'   (i.e. \eqn{X_i - t}, transposed so columns are observations).
+//' @param U_obs Numeric matrix d x n of all observations centred at t.
 //' @param h Bandwidth (scalar > 0).
 //' @param alphas Integer matrix D_m x d of multi-indices.
-//' @return Scalar density estimate \eqn{\hat f(t)}.
+//' @return Numeric vector of length 2: \code{c(estimate, norm_H0_sq)}.
 //' @keywords internal
 // [[Rcpp::export]]
-double lp_estimator_cpp(const arma::mat&      U_quad,
-                        int                   n_total,
-                        const arma::mat&      U_obs,
-                        double                h,
-                        const arma::Mat<int>& alphas) {
+arma::vec lp_estimator_loo_cpp(const arma::mat&      U_quad,
+                               int                   n_total,
+                               const arma::mat&      U_obs,
+                               double                h,
+                               const arma::Mat<int>& alphas) {
   int d  = U_quad.n_rows;
   int n  = U_obs.n_cols;
   int Dm = alphas.n_rows;
@@ -95,10 +94,11 @@ double lp_estimator_cpp(const arma::mat&      U_quad,
   }
   arma::mat L_lower = L_upper.t();
 
-  // 3. H_0 = L_lower^{-1} e_1   (e_1: first standard basis vector)
+  // 3. H_0 = L_lower^{-1} e_1
   arma::vec e1(Dm, arma::fill::zeros);
   e1(0) = 1.0;
-  arma::vec H_0 = arma::solve(arma::trimatl(L_lower), e1);
+  arma::vec H_0       = arma::solve(arma::trimatl(L_lower), e1);
+  double norm_H0_sq   = arma::dot(H_0, H_0);  // ||H_0||^2 = (B^{-1})_{11}
 
   // 4. Filter observations in V(h) = [-h, h]^d
   arma::uvec idx(n);
@@ -106,16 +106,37 @@ double lp_estimator_cpp(const arma::mat&      U_quad,
   for (int i = 0; i < n; i++) {
     if (arma::all(arma::abs(U_obs.col(i)) <= h)) idx(N_V++) = i;
   }
-  if (N_V == 0) return 0.0;
 
-  // 5. Phi matrix for observations in V(h)  (Dm x N_V)
-  arma::mat Phi_V = build_phi_mat(U_obs.cols(idx.head(N_V)) / h, alphas);
+  double estimate = 0.0;
+  if (N_V > 0) {
+    // 5. Phi_V and H_V for observations in V(h)
+    arma::mat Phi_V = build_phi_mat(U_obs.cols(idx.head(N_V)) / h, alphas);
+    arma::mat H_V   = arma::solve(arma::trimatl(L_lower), Phi_V);
 
-  // 6. H_V = L_lower^{-1} Phi_V   (Dm x N_V)
-  arma::mat H_V = arma::solve(arma::trimatl(L_lower), Phi_V);
+    // 6. Estimator: h^{-d}/n * H_0^T (H_V 1_{N_V})
+    estimate = arma::dot(H_0, arma::sum(H_V, 1)) /
+               (static_cast<double>(n) * std::pow(h, d));
+  }
 
-  // 7. Estimator: h^{-d}/n * H_0^T (H_V 1_{N_V})
-  double result = arma::dot(H_0, arma::sum(H_V, 1)) /
-                  (static_cast<double>(n) * std::pow(h, d));
-  return result;
+  return arma::vec{estimate, norm_H0_sq};
+}
+
+//' Full local-polynomial density estimator at one point (C++ backend)
+//'
+//' @param U_quad Numeric matrix d x N of quadrature points centred at t
+//'   (output of the domain sampler).
+//' @param n_total Integer, total draws in \eqn{[-h,h]^d}.
+//' @param U_obs Numeric matrix d x n of all observations centred at t
+//'   (i.e. \eqn{X_i - t}, transposed so columns are observations).
+//' @param h Bandwidth (scalar > 0).
+//' @param alphas Integer matrix D_m x d of multi-indices.
+//' @return Scalar density estimate \eqn{\hat f(t)}.
+//' @keywords internal
+// [[Rcpp::export]]
+double lp_estimator_cpp(const arma::mat&      U_quad,
+                        int                   n_total,
+                        const arma::mat&      U_obs,
+                        double                h,
+                        const arma::Mat<int>& alphas) {
+  return lp_estimator_loo_cpp(U_quad, n_total, U_obs, h, alphas)[0];
 }
