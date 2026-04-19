@@ -45,6 +45,8 @@ rfactory <- function(f, is_in_domain = NULL, box, M = NULL, N_pilot = 2000L) {
     is.numeric(upper),
     length(lower) == d,
     length(upper) == d,
+    all(is.finite(lower)),
+    all(is.finite(upper)),
     all(upper > lower)
   )
 
@@ -71,17 +73,17 @@ rfactory <- function(f, is_in_domain = NULL, box, M = NULL, N_pilot = 2000L) {
     }
     M <- max(fvals) * 1.1
   }
-  stopifnot(is.numeric(M), length(M) == 1L, M > 0)
+  stopifnot(is.numeric(M), length(M) == 1L, is.finite(M), M > 0)
 
   function(n) {
     n <- as.integer(n)
+    stopifnot(n >= 1L)
     batch <- max(1000L, n * 10L)
-    acc <- vector("list")
-    total <- 0L
+    out <- matrix(NA_real_, n, d)
+    filled <- 0L
 
-    while (total < n) {
+    while (filled < n) {
       cands <- .sample_box(batch)
-
       if (!is.null(is_in_domain)) {
         cands <- cands[.call_fn(is_in_domain, cands), , drop = FALSE]
       }
@@ -90,16 +92,21 @@ rfactory <- function(f, is_in_domain = NULL, box, M = NULL, N_pilot = 2000L) {
       }
 
       fvals <- .call_fn(f, cands)
+      if (any(fvals > M)) {
+        warning(
+          "some fvals exceed M: M is underestimated, sample may be biased."
+        )
+      }
       keep <- runif(nrow(cands)) < fvals / M
       pts <- cands[keep, , drop = FALSE]
 
-      if (nrow(pts) > 0L) {
-        acc <- c(acc, list(pts))
-        total <- total + nrow(pts)
+      take <- min(nrow(pts), n - filled)
+      if (take > 0L) {
+        out[seq(filled + 1L, filled + take), ] <- pts[seq_len(take), ]
+        filled <- filled + take
       }
     }
 
-    out <- do.call(rbind, acc)[seq_len(n), , drop = FALSE]
     colnames(out) <- coord_names
     out
   }
