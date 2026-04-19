@@ -22,9 +22,9 @@ density_lp <- function(X, t_grid, h, m = 0L, domain, N_quad = 500L) {
   check_X(X)
   check_t_grid(t_grid, ncol(X))
   check_domain(domain, ncol(X))
-  stopifnot(is.numeric(h), length(h) == 1L, h > 0)
-  stopifnot(is.numeric(m), length(m) == 1L, m >= 0, m == floor(m))
-  stopifnot(is.numeric(N_quad), length(N_quad) == 1L, N_quad >= 1L)
+  check_h(h)
+  check_m(m)
+  check_N_quad(N_quad)
 
   p <- nrow(t_grid)
   estimate <- numeric(p)

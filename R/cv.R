@@ -26,14 +26,9 @@
 cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
   check_X(X)
   check_domain(domain, ncol(X))
-  stopifnot(is.numeric(h_grid), length(h_grid) >= 1L, all(h_grid > 0))
-  stopifnot(
-    is.numeric(m_grid),
-    length(m_grid) >= 1L,
-    all(m_grid >= 0),
-    all(m_grid == floor(m_grid))
-  )
-  stopifnot(is.numeric(N_quad), length(N_quad) == 1L, N_quad >= 1L)
+  check_h_grid(h_grid)
+  check_m_grid(m_grid)
+  check_N_quad(N_quad)
 
   m_grid <- as.integer(m_grid)
   n <- nrow(X)
@@ -45,6 +40,7 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
     length(h_grid),
     dimnames = list(paste0("m=", m_grid), as.character(round(h_grid, 6L)))
   )
+  n_fail <- matrix(0L, length(m_grid), length(h_grid))
 
   sampler <- domain$sampler_factory()
 
@@ -61,6 +57,7 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
         s <- tryCatch(sampler(N_quad, t_i, h), error = function(e) NULL)
 
         if (is.null(s) || ncol(s$points) < 2L) {
+          n_fail[im, ih] <- n_fail[im, ih] + 1L
           log_loo[i] <- -Inf
           next
         }

@@ -15,15 +15,11 @@ build_alphas <- function(m, d) {
 
   grid <- do.call(expand.grid, rep(list(seq.int(0L, m)), d))
   valid <- rowSums(grid) <= m
-  alphas <- as.matrix(grid[valid, , drop = FALSE])
-  storage.mode(alphas) <- "integer"
+  alphas <- matrix(as.integer(as.matrix(grid[valid, , drop = FALSE])), ncol = d)
 
   # Sort by increasing total degree, then lexicographically column by column
   deg <- rowSums(alphas)
-  ord <- do.call(
-    order,
-    c(list(deg), lapply(seq_len(d), function(j) alphas[, j]))
-  )
+  ord <- do.call(order, as.data.frame(cbind(deg, alphas)))
   alphas <- alphas[ord, , drop = FALSE]
 
   rownames(alphas) <- NULL
