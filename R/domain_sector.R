@@ -6,11 +6,12 @@
 #' @return An `"domain_lp"` object (d = 2).
 #' @export
 domain_sector <- function(k) {
-  stopifnot(is.numeric(k), length(k) == 1L, k > 0)
+  stopifnot(is.numeric(k), length(k) == 1L, is.finite(k), k > 0)
   new_domain_lp(
     2L,
     function() sampler_sector(k),
-    label = paste0("polynomial sector D_", k)
+    label = paste0("polynomial sector D_", k),
+    call = match.call()
   )
 }
 
@@ -42,8 +43,16 @@ sampler_sector <- function(k) {
       x_hi
     )$value
 
-    if (vol < .Machine$double.eps) {
-      stop("V(h) has zero volume for t = (", tx, ", ", ty, ") and h = ", h)
+    if (vol / (2 * h)^2 < 1e-4) {
+      stop(
+        "V(h) has negligible volume for t = (",
+        tx,
+        ", ",
+        ty,
+        ") and h = ",
+        h,
+        ": acceptance rate below 0.01%, Monte Carlo estimates would be unreliable."
+      )
     }
 
     # Rejection sampling (efficient: domain is monotone in x)

@@ -1,9 +1,9 @@
 # Domain objects "domain_lp" ----------------------------------------------------
 
 #' @keywords internal
-new_domain_lp <- function(d, sampler_factory, label) {
+new_domain_lp <- function(d, sampler_factory, label, call) {
   structure(
-    list(d = d, sampler_factory = sampler_factory, label = label),
+    list(d = d, sampler_factory = sampler_factory, label = label, call = call),
     class = "domain_lp"
   )
 }
@@ -26,11 +26,16 @@ print.domain_lp <- function(x, ...) {
 #' @return An `"domain_lp"` object.
 #' @export
 domain_Rd <- function(d) {
-  stopifnot(is.numeric(d), length(d) == 1L, d >= 1, d == floor(d))
+  stopifnot(is.numeric(d), length(d) == 1L, is.finite(d), d >= 1, d == floor(d))
   d <- as.integer(d)
 
   is_in <- function(...) rep(TRUE, length(..1))
-  new_domain_lp(d, function() sampler_rejection(is_in), label = "R^d")
+  new_domain_lp(
+    d,
+    function() sampler_rejection(is_in),
+    label = "R^d",
+    call = match.call()
+  )
 }
 
 #' Domain defined by an indicator function
@@ -47,7 +52,8 @@ domain_from_indicator <- function(is_in_domain) {
   new_domain_lp(
     d,
     function() sampler_rejection(is_in_domain),
-    label = "analytic domain"
+    label = "analytic domain",
+    call = match.call()
   )
 }
 
@@ -66,6 +72,7 @@ domain_from_owin <- function(win) {
   new_domain_lp(
     2L,
     function() sampler_owin(win),
-    label = paste0("spatstat owin (", win$type, ")")
+    label = paste0("spatstat owin (", win$type, ")"),
+    call = match.call()
   )
 }

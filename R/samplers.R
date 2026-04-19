@@ -60,16 +60,13 @@ sampler_owin <- function(win) {
     V_h <- spatstat.geom::intersect.owin(win, box)
     vol <- spatstat.geom::area.owin(V_h)
 
-    if (vol < .Machine$double.eps) {
-      stop(
-        "V(h) has zero area for h = ",
-        h,
-        " at t = (",
+    if (vol / (2 * h)^2 < 1e-4) {
+      stop(sprintf(
+        "V(h) has negligible area at t = (%.4g, %.4g) for h = %.4g: acceptance rate below 0.01%%, Monte Carlo estimates would be unreliable.",
         t[1L],
-        ", ",
         t[2L],
-        ")."
-      )
+        h
+      ))
     }
 
     pts <- spatstat.random::runifpoint(N_quad, win = V_h)
