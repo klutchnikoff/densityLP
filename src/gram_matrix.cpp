@@ -1,6 +1,11 @@
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 
+// Gram matrix weight: vol([-h,h]^d) / (n_total * h^d) = 2^d / n_total.
+static inline double gram_weight(int d, int n_total) {
+  return std::pow(2.0, d) / static_cast<double>(n_total);
+}
+
 // Integer power: x^n for small non-negative n.
 // Faster than std::pow for the integer exponents arising from multi-indices.
 static inline double ipow(double x, int n) {
@@ -51,9 +56,7 @@ arma::mat gram_matrix_cpp(const arma::mat&      U,
   arma::mat Phi = build_phi_mat(U / h, alphas);
 
   // B = weight * Phi * Phi^T  (BLAS DSYRK via Armadillo)
-  double weight = std::pow(2.0 * h, d) /
-                  (static_cast<double>(n_total) * std::pow(h, d));
-  return weight * (Phi * Phi.t());
+  return gram_weight(d, n_total) * (Phi * Phi.t());
 }
 
 //' Full LP estimator with LOO self-influence term (C++ backend)
@@ -82,9 +85,7 @@ arma::vec lp_estimator_loo_cpp(const arma::mat&      U_quad,
 
   // 1. Gram matrix
   arma::mat Phi_q = build_phi_mat(U_quad / h, alphas);
-  double weight   = std::pow(2.0 * h, d) /
-                    (static_cast<double>(n_total) * std::pow(h, d));
-  arma::mat B = weight * (Phi_q * Phi_q.t());
+  arma::mat B = gram_weight(d, n_total) * (Phi_q * Phi_q.t());
 
   // 2. Cholesky: B = L_upper^T * L_upper
   arma::mat L_upper;
