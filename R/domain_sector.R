@@ -3,11 +3,11 @@
 #' Polynomial sector \eqn{D_k = \{(x, y) : x \in [0, 1],\, 0 \le y \le x^k\}}
 #'
 #' @param k Sector exponent (scalar > 0).
-#' @return An `"lp_domain"` object (d = 2).
+#' @return An `"domain_lp"` object (d = 2).
 #' @export
 domain_sector <- function(k) {
   stopifnot(is.numeric(k), length(k) == 1L, k > 0)
-  new_lp_domain(
+  new_domain_lp(
     2L,
     function() sampler_sector(k),
     label = paste0("polynomial sector D_", k)

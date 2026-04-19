@@ -10,7 +10,7 @@ domain_Rd(d)
 \item{d}{Space dimension (integer >= 1).}
 }
 \value{
-An \code{"lp_domain"} object.
+An \code{"domain_lp"} object.
 }
 \description{
 Domain R^d (no constraint: neighbourhood = full \eqn{[-h, h]^d})

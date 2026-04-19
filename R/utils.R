@@ -42,9 +42,9 @@ check_t_grid <- function(t_grid, d) {
 
 #' @keywords internal
 check_domain <- function(domain, d) {
-  if (!inherits(domain, "lp_domain")) {
+  if (!inherits(domain, "domain_lp")) {
     stop(
-      "`domain` must be an 'lp_domain' object ",
+      "`domain` must be an 'domain_lp' object ",
       "(see domain_Rd(), domain_from_indicator(), domain_sector())."
     )
   }

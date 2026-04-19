@@ -13,7 +13,7 @@ cv_density_lp(X, h_grid, m_grid = 0:3, domain, N_quad = 500L)
 
 \item{m_grid}{Integer vector of polynomial degrees (default \code{0:3}).}
 
-\item{domain}{An \code{"lp_domain"} object.}
+\item{domain}{An \code{"domain_lp"} object.}
 
 \item{N_quad}{Number of quadrature points per evaluation (default 500).}
 }

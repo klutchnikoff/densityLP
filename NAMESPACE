@@ -3,7 +3,7 @@
 S3method(plot,density_lp)
 S3method(print,cv_density_lp)
 S3method(print,density_lp)
-S3method(print,lp_domain)
+S3method(print,domain_lp)
 export(cv_density_lp)
 export(cv_density_lp_ppp)
 export(density_lp)

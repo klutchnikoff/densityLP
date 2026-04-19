@@ -1,6 +1,6 @@
 test_that("domain_Rd: correct class and dimension", {
   dom <- domain_Rd(2L)
-  expect_s3_class(dom, "lp_domain")
+  expect_s3_class(dom, "domain_lp")
   expect_equal(dom$d, 2L)
   expect_true(is.function(dom$sampler_factory))
 })
@@ -37,7 +37,7 @@ test_that("domain_from_indicator: rejects points outside unit disk", {
   set.seed(20L)
   is_in <- function(X) rowSums(X^2) <= 1
   dom <- domain_from_indicator(is_in, d = 2L)
-  expect_s3_class(dom, "lp_domain")
+  expect_s3_class(dom, "domain_lp")
   s <- dom$sampler_factory()(100L, t = c(0, 0), h = 0.5)
   pts_global <- sweep(t(s$points), 2L, c(0, 0), "+")
   expect_true(all(rowSums(pts_global^2) <= 1 + 1e-9))
@@ -54,7 +54,7 @@ test_that("domain_from_indicator: n_total is positive and points are accepted", 
 
 test_that("domain_sector: correct class and dimension", {
   dom <- domain_sector(2L)
-  expect_s3_class(dom, "lp_domain")
+  expect_s3_class(dom, "domain_lp")
   expect_equal(dom$d, 2L)
 })
 
@@ -83,7 +83,7 @@ test_that("domain_sector: n_total is positive and finite", {
 })
 
 test_that("check_domain: error on wrong class", {
-  expect_error(check_domain(list(d = 2L), d = 2L), "lp_domain")
+  expect_error(check_domain(list(d = 2L), d = 2L), "domain_lp")
 })
 
 test_that("check_domain: error on dimension mismatch", {
@@ -124,25 +124,25 @@ test_that("check_t_grid: error if contains NA", {
   expect_error(check_t_grid(t, d = 2L), "missing")
 })
 
-# ── print.lp_domain ────────────────────────────────────────────────────────────
+# ── print.domain_lp ────────────────────────────────────────────────────────────
 
-test_that("print.lp_domain: returns x invisibly", {
+test_that("print.domain_lp: returns x invisibly", {
   dom <- domain_Rd(2L)
   expect_identical(withVisible(print(dom))$visible, FALSE)
 })
 
-test_that("print.lp_domain: produces output", {
+test_that("print.domain_lp: produces output", {
   dom <- domain_Rd(2L)
-  expect_output(print(dom), "lp_domain")
+  expect_output(print(dom), "domain_lp")
 })
 
 # ── domain_from_owin ───────────────────────────────────────────────────────────
 
-test_that("domain_from_owin: returns lp_domain with d = 2", {
+test_that("domain_from_owin: returns domain_lp with d = 2", {
   skip_if_not_installed("spatstat.geom")
   win <- spatstat.geom::owin(c(0, 1), c(0, 1))
   dom <- domain_from_owin(win)
-  expect_s3_class(dom, "lp_domain")
+  expect_s3_class(dom, "domain_lp")
   expect_equal(dom$d, 2L)
 })
 

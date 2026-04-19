@@ -16,7 +16,7 @@ implicit conversion from data frames or tibbles is performed.}
 
 \item{m}{Polynomial degree (integer >= 0).}
 
-\item{domain}{An \code{"lp_domain"} object describing the support of the density
+\item{domain}{An \code{"domain_lp"} object describing the support of the density
 (see \code{\link[=domain_Rd]{domain_Rd()}}, \code{\link[=domain_from_indicator]{domain_from_indicator()}}, \code{\link[=domain_sector]{domain_sector()}}).}
 
 \item{N_quad}{Number of Monte Carlo quadrature points per target point

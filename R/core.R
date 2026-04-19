@@ -6,7 +6,7 @@
 #' @param t Numeric vector of length d (target point).
 #' @param h Bandwidth (scalar > 0).
 #' @param m Polynomial degree (integer >= 0).
-#' @param domain An `"lp_domain"` object.
+#' @param domain An `"domain_lp"` object.
 #' @param N_quad Number of Monte Carlo quadrature points.
 #' @return Scalar estimate of f(t).
 #' @keywords internal

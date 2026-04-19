@@ -10,10 +10,10 @@ domain_from_owin(win)
 \item{win}{An \code{owin} object (spatstat.geom).}
 }
 \value{
-An \code{"lp_domain"} object (d = 2).
+An \code{"domain_lp"} object (d = 2).
 }
 \description{
-Wraps a \code{\link[spatstat.geom:owin]{spatstat.geom::owin()}} object as an \code{"lp_domain"}.  The quadrature
+Wraps a \code{\link[spatstat.geom:owin]{spatstat.geom::owin()}} object as an \code{"domain_lp"}.  The quadrature
 sampler uses \code{\link[spatstat.random:runifpoint]{spatstat.random::runifpoint()}} on the exact intersection
 \eqn{V(h) = \mathcal{D} \cap [-h, h]^2}, giving exact area and unbiased
 Monte Carlo weights.

@@ -15,7 +15,7 @@
 #' @param X Numeric matrix `n x d` of observations.
 #' @param h_grid Numeric vector of bandwidth values (all > 0).
 #' @param m_grid Integer vector of polynomial degrees (default `0:3`).
-#' @param domain An `"lp_domain"` object.
+#' @param domain An `"domain_lp"` object.
 #' @param N_quad Number of quadrature points per evaluation (default 500).
 #' @return An S3 object of class `"cv_density_lp"` containing:
 #'   - `$m_hat`, `$h_hat`: selected degree and bandwidth,

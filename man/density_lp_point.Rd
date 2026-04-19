@@ -15,7 +15,7 @@ density_lp_point(X, t, h, m, domain, N_quad)
 
 \item{m}{Polynomial degree (integer >= 0).}
 
-\item{domain}{An \code{"lp_domain"} object.}
+\item{domain}{An \code{"domain_lp"} object.}
 
 \item{N_quad}{Number of Monte Carlo quadrature points.}
 }

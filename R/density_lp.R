@@ -7,7 +7,7 @@
 #' @param t_grid Numeric matrix `p x d` of target points.
 #' @param h Bandwidth (scalar > 0).
 #' @param m Polynomial degree (integer >= 0).
-#' @param domain An `"lp_domain"` object describing the support of the density
+#' @param domain An `"domain_lp"` object describing the support of the density
 #'   (see [domain_Rd()], [domain_from_indicator()], [domain_sector()]).
 #' @param N_quad Number of Monte Carlo quadrature points per target point
 #'   (default: 500).

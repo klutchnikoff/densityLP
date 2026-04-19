@@ -14,7 +14,7 @@ vector of length \code{n}.}
 \item{d}{Space dimension (integer >= 1).}
 }
 \value{
-An \code{"lp_domain"} object.
+An \code{"domain_lp"} object.
 }
 \description{
 Domain defined by an indicator function
