@@ -18,7 +18,7 @@
 #' @seealso [density_lp()], [domain_from_owin()]
 #' @importFrom spatstat.geom Window inside.owin im unitname
 #' @export
-density_lp_ppp <- function(pp, h, m = 1L, N_quad = 500L, nx = 128L, ny = 128L) {
+density_lp_ppp <- function(pp, h, m = 0L, N_quad = 500L, nx = 128L, ny = 128L) {
   stopifnot(inherits(pp, "ppp"))
   stopifnot(is.numeric(h), length(h) == 1L, h > 0)
   stopifnot(is.numeric(m), length(m) == 1L, m >= 0, m == floor(m))

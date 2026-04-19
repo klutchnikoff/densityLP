@@ -18,7 +18,7 @@
 #'   - `$h`, `$m`, `$domain`, `$N_quad`: parameters used.
 #'
 #' @export
-density_lp <- function(X, t_grid, h, m, domain, N_quad = 500L) {
+density_lp <- function(X, t_grid, h, m = 0L, domain, N_quad = 500L) {
   check_X(X)
   check_t_grid(t_grid, ncol(X))
   check_domain(domain, ncol(X))

@@ -15,33 +15,38 @@
 #'   Returns a numeric vector of length equal to the argument length.
 #' @param is_in_domain Optional vectorised indicator: same signature as `f`,
 #'   returns a logical vector.  When `NULL`, masking is embedded in `f`.
-#' @param box Numeric vector of length `2d` encoding the bounding box as
-#'   `c(x1_min, x1_max, x2_min, x2_max, ...)`.
+#' @param box Named list with elements `lower` and `upper` (numeric vectors of
+#'   length `d`) bounding the support of `f`.
 #' @param M Scalar upper bound of `f` on the domain.  Estimated automatically
 #'   from a pilot sample when `NULL`.
-#' @param n_pilot Number of pilot draws used to estimate `M`.
+#' @param N_pilot Number of pilot draws used to estimate `M`.
 #' @return A function `function(n)` returning an `n x d` numeric matrix of
 #'   random points, with column names taken from the formals of `f`.
 #' @examples
 #' f            <- function(x, y) x^2 + abs(y)^3
 #' is_in_domain <- function(x, y) x^2 + y^2 <= 1
-#' box          <- c(-1, 1, -1, 1)
+#' box          <- list(lower = c(-1, -1), upper = c(1, 1))
 #' rpts         <- rfactory(f, is_in_domain, box)
 #' pts          <- rpts(200L)
 #'
 #' # Simplified: masking embedded in f
 #' g    <- function(x, y) (x^2 + abs(y)^3) * (x^2 + y^2 <= 1)
-#' rpts <- rfactory(g, box = c(-1, 1, -1, 1))
+#' rpts <- rfactory(g, box = list(lower = c(-1, -1), upper = c(1, 1)))
 #' @importFrom stats runif
 #' @export
-rfactory <- function(f, is_in_domain = NULL, box, M = NULL, n_pilot = 2000L) {
+rfactory <- function(f, is_in_domain = NULL, box, M = NULL, N_pilot = 2000L) {
   d <- length(formals(f))
   stopifnot(d >= 1L)
-  stopifnot(is.numeric(box), length(box) == 2L * d)
 
-  lower <- box[seq(1L, 2L * d - 1L, by = 2L)]
-  upper <- box[seq(2L, 2L * d, by = 2L)]
-  stopifnot(all(upper > lower))
+  lower <- box$lower
+  upper <- box$upper
+  stopifnot(
+    is.numeric(lower),
+    is.numeric(upper),
+    length(lower) == d,
+    length(upper) == d,
+    all(upper > lower)
+  )
 
   coord_names <- names(formals(f))
 
@@ -56,7 +61,7 @@ rfactory <- function(f, is_in_domain = NULL, box, M = NULL, n_pilot = 2000L) {
   }
 
   if (is.null(M)) {
-    pilots <- .sample_box(n_pilot)
+    pilots <- .sample_box(N_pilot)
     fvals <- .call_fn(f, pilots)
     if (!is.null(is_in_domain)) {
       fvals <- fvals * .call_fn(is_in_domain, pilots)

@@ -4,7 +4,7 @@
 \alias{density_lp_ppp}
 \title{Local polynomial density estimation for a spatial point pattern}
 \usage{
-density_lp_ppp(pp, h, m = 1L, N_quad = 500L, nx = 128L, ny = 128L)
+density_lp_ppp(pp, h, m = 0L, N_quad = 500L, nx = 128L, ny = 128L)
 }
 \arguments{
 \item{pp}{A \code{ppp} object (spatstat.geom).}

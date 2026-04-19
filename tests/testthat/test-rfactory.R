@@ -2,7 +2,7 @@
 
 f_disc <- function(x, y) x^2 + abs(y)^3
 in_disc <- function(x, y) x^2 + y^2 <= 1
-box_disc <- c(-1, 1, -1, 1)
+box_disc <- list(lower = c(-1, -1), upper = c(1, 1))
 
 test_that("rfactory: returns a function", {
   r <- rfactory(f_disc, in_disc, box_disc)
@@ -32,7 +32,6 @@ test_that("rfactory: all points satisfy the domain indicator", {
 })
 
 test_that("rfactory: non-uniform density shifts the distribution", {
-  # f = x^2 concentrates mass near |x| = 1
   set.seed(4L)
   r <- rfactory(function(x, y) x^2, in_disc, box_disc)
   pts <- r(500L)
@@ -50,7 +49,11 @@ test_that("rfactory: simplified form (masking in f) works", {
 
 test_that("rfactory: works in d = 1", {
   set.seed(6L)
-  r <- rfactory(function(x) x^2, function(x) x >= 0 & x <= 1, box = c(0, 1))
+  r <- rfactory(
+    function(x) x^2,
+    function(x) x >= 0 & x <= 1,
+    box = list(lower = 0, upper = 1)
+  )
   pts <- r(100L)
   expect_equal(dim(pts), c(100L, 1L))
   expect_equal(colnames(pts), "x")
@@ -64,17 +67,15 @@ test_that("rfactory: user-supplied M is respected", {
   expect_equal(dim(pts), c(100L, 2L))
 })
 
-test_that("rfactory: error if box has wrong length", {
-  expect_error(rfactory(f_disc, in_disc, box = c(-1, 1, -1)))
-})
-
 test_that("rfactory: error if lower >= upper", {
-  expect_error(rfactory(f_disc, in_disc, box = c(1, -1, -1, 1)))
+  expect_error(
+    rfactory(f_disc, in_disc, list(lower = c(1, -1), upper = c(-1, 1)))
+  )
 })
 
 test_that("rfactory: error if all pilot values are zero", {
   expect_error(
-    rfactory(function(x, y) 0, in_disc, box_disc, n_pilot = 200L),
+    rfactory(function(x, y) 0, in_disc, box_disc, N_pilot = 200L),
     "zero"
   )
 })

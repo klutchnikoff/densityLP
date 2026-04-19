@@ -4,7 +4,7 @@
 \alias{rfactory}
 \title{Factory for random point generators from an unnormalized density}
 \usage{
-rfactory(f, is_in_domain = NULL, box, M = NULL, n_pilot = 2000L)
+rfactory(f, is_in_domain = NULL, box, M = NULL, N_pilot = 2000L)
 }
 \arguments{
 \item{f}{Vectorised positive function of \code{d} arguments (one per coordinate).
@@ -13,13 +13,13 @@ Returns a numeric vector of length equal to the argument length.}
 \item{is_in_domain}{Optional vectorised indicator: same signature as \code{f},
 returns a logical vector.  When \code{NULL}, masking is embedded in \code{f}.}
 
-\item{box}{Numeric vector of length \verb{2d} encoding the bounding box as
-\code{c(x1_min, x1_max, x2_min, x2_max, ...)}.}
+\item{box}{Named list with elements \code{lower} and \code{upper} (numeric vectors of
+length \code{d}) bounding the support of \code{f}.}
 
 \item{M}{Scalar upper bound of \code{f} on the domain.  Estimated automatically
 from a pilot sample when \code{NULL}.}
 
-\item{n_pilot}{Number of pilot draws used to estimate \code{M}.}
+\item{N_pilot}{Number of pilot draws used to estimate \code{M}.}
 }
 \value{
 A function \verb{function(n)} returning an \verb{n x d} numeric matrix of
@@ -39,11 +39,11 @@ If \code{is_in_domain} is omitted, \code{f} itself must return \code{0} outside 
 \examples{
 f            <- function(x, y) x^2 + abs(y)^3
 is_in_domain <- function(x, y) x^2 + y^2 <= 1
-box          <- c(-1, 1, -1, 1)
+box          <- list(lower = c(-1, -1), upper = c(1, 1))
 rpts         <- rfactory(f, is_in_domain, box)
 pts          <- rpts(200L)
 
 # Simplified: masking embedded in f
 g    <- function(x, y) (x^2 + abs(y)^3) * (x^2 + y^2 <= 1)
-rpts <- rfactory(g, box = c(-1, 1, -1, 1))
+rpts <- rfactory(g, box = list(lower = c(-1, -1), upper = c(1, 1)))
 }

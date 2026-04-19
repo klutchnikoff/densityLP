@@ -4,7 +4,7 @@
 \alias{density_lp}
 \title{Local polynomial density estimation on a grid of target points}
 \usage{
-density_lp(X, t_grid, h, m, domain, N_quad = 500L)
+density_lp(X, t_grid, h, m = 0L, domain, N_quad = 500L)
 }
 \arguments{
 \item{X}{Numeric matrix \verb{n x d} of observations. Must be a matrix; no
