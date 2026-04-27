@@ -14,6 +14,7 @@
 #'
 #' @return An S3 object of class `"density_lp"` containing:
 #'   - `$estimate`: numeric vector of length `p` (estimated values),
+#'   - `$variance`: numeric vector of length `p` (variance estimates),
 #'   - `$t_grid`:   the matrix of target points,
 #'   - `$h`, `$m`, `$domain`, `$N_quad`: parameters used.
 #'
@@ -28,9 +29,10 @@ density_lp <- function(X, t_grid, h, m = 0L, domain, N_quad = 500L) {
 
   p <- nrow(t_grid)
   estimate <- numeric(p)
+  variance <- numeric(p)
 
   for (i in seq_len(p)) {
-    estimate[i] <- density_lp_point(
+    res <- density_lp_point(
       X = X,
       t = t_grid[i, ],
       h = h,
@@ -38,11 +40,14 @@ density_lp <- function(X, t_grid, h, m = 0L, domain, N_quad = 500L) {
       domain = domain,
       N_quad = N_quad
     )
+    estimate[i] <- res["estimate"]
+    variance[i] <- res["variance"]
   }
 
   structure(
     list(
       estimate = estimate,
+      variance = variance,
       t_grid = t_grid,
       h = h,
       m = m,

@@ -1,6 +1,6 @@
 # ── density_lp_point ───────────────────────────────────────────────────────────
 
-test_that("density_lp_point: returns a scalar", {
+test_that("density_lp_point: returns a named vector of length 3", {
   set.seed(1L)
   X <- matrix(runif(100L * 2L), 100L, 2L)
   val <- densityLP:::density_lp_point(
@@ -11,11 +11,12 @@ test_that("density_lp_point: returns a scalar", {
     domain = domain_Rd(2L),
     N_quad = 200L
   )
-  expect_true(is.numeric(val))
-  expect_length(val, 1L)
+  expect_type(val, "double")
+  expect_length(val, 3L)
+  expect_named(val, c("estimate", "norm_H0_sq", "variance"))
 })
 
-test_that("density_lp_point: returns non-negative value", {
+test_that("density_lp_point: returns non-negative estimate and variance", {
   set.seed(2L)
   X <- matrix(runif(200L * 2L), 200L, 2L)
   val <- densityLP:::density_lp_point(
@@ -26,7 +27,8 @@ test_that("density_lp_point: returns non-negative value", {
     domain = domain_Rd(2L),
     N_quad = 200L
   )
-  expect_gte(val, 0)
+  expect_gte(val["estimate"], 0)
+  expect_gte(val["variance"], 0)
 })
 
 test_that("density_lp_point: returns 0 when no observations in V(h)", {
@@ -39,7 +41,8 @@ test_that("density_lp_point: returns 0 when no observations in V(h)", {
     domain = domain_Rd(2L),
     N_quad = 200L
   )
-  expect_equal(val, 0)
+  expect_equal(unname(val["estimate"]), 0)
+  expect_equal(unname(val["variance"]), 0)
 })
 
 # ── print / plot methods ────────────────────────────────────────────────────────

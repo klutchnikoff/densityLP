@@ -59,19 +59,14 @@ arma::mat gram_matrix_cpp(const arma::mat&      U,
   return gram_weight(d, n_total) * (Phi * Phi.t());
 }
 
-//' Full LP estimator with LOO self-influence term (C++ backend)
-//'
-//' Identical to [lp_estimator_cpp()] but additionally returns
-//' \eqn{\|H_0\|^2 = (B_\gamma^{-1})_{11}}, the self-influence scalar needed
-//' for the algebraic LOO correction
-//' \eqn{\hat f_{\gamma,-i}(X_i) = (n \hat f_\gamma(X_i) - h^{-d}\|H_0\|^2) / (n-1)}.
+//' Full LP estimator with LOO self-influence term and variance (C++ backend)
 //'
 //' @param U_quad Numeric matrix d x N of quadrature points centred at t.
 //' @param n_total Integer, total draws in \eqn{[-h,h]^d}.
 //' @param U_obs Numeric matrix d x n of all observations centred at t.
 //' @param h Bandwidth (scalar > 0).
 //' @param alphas Integer matrix D_m x d of multi-indices.
-//' @return Numeric vector of length 2: \code{c(estimate, norm_H0_sq)}.
+//' @return Numeric vector of length 3: \code{c(estimate, norm_H0_sq, variance)}.
 //' @keywords internal
 // [[Rcpp::export]]
 arma::vec lp_estimator_loo_cpp(const arma::mat&      U_quad,
@@ -109,17 +104,29 @@ arma::vec lp_estimator_loo_cpp(const arma::mat&      U_quad,
   }
 
   double estimate = 0.0;
+  double variance = 0.0;
   if (N_V > 0) {
     // 5. Phi_V and H_V for observations in V(h)
     arma::mat Phi_V = build_phi_mat(U_obs.cols(idx.head(N_V)) / h, alphas);
     arma::mat H_V   = arma::solve(arma::trimatl(L_lower), Phi_V);
 
-    // 6. Estimator: h^{-d}/n * H_0^T (H_V 1_{N_V})
-    estimate = arma::dot(H_0, arma::sum(H_V, 1)) /
-               (static_cast<double>(n) * std::pow(h, d));
+    // 6. Estimator and variance:
+    // Z_i = h^-d * dot(H_0, H_V.col(i))
+    // estimate = (1/n) * sum Z_i
+    // variance = (1/n^2) * sum Z_i^2
+    arma::vec Z = (H_V.t() * H_0) / std::pow(h, d);
+    estimate = arma::mean(Z) * (static_cast<double>(N_V) / static_cast<double>(n));
+    
+    // Note: mean(Z) = sum(Z) / N_V. We need sum(Z) / n.
+    // Correct formula:
+    double sum_Z = arma::sum(Z);
+    estimate = sum_Z / static_cast<double>(n);
+    
+    double sum_Z2 = arma::dot(Z, Z);
+    variance = sum_Z2 / (static_cast<double>(n) * static_cast<double>(n));
   }
 
-  return arma::vec{estimate, norm_H0_sq};
+  return arma::vec{estimate, norm_H0_sq, variance};
 }
 
 //' Full local-polynomial density estimator at one point (C++ backend)
@@ -140,4 +147,88 @@ double lp_estimator_cpp(const arma::mat&      U_quad,
                         double                h,
                         const arma::Mat<int>& alphas) {
   return lp_estimator_loo_cpp(U_quad, n_total, U_obs, h, alphas)[0];
+}
+
+//' Optimized LOO CV scores for a fixed (m, h) grid point (C++ backend)
+//'
+//' @param X Numeric matrix d x n of all observations.
+//' @param U_quad_list List of d x N_i matrices of quadrature points.
+//' @param n_total_vec Integer vector of total draws in the box for each point.
+//'   (length n).
+//' @param h Bandwidth (scalar > 0).
+//' @param alphas Integer matrix D_m x d of multi-indices.
+//' @return Numeric vector of length n: log(f_loo(X_i)).
+//' @keywords internal
+// [[Rcpp::export]]
+arma::vec cv_lp_fixed_h_m_cpp(const arma::mat&      X,
+                              const Rcpp::List&    U_quad_list,
+                              const arma::uvec&    n_total_vec,
+                              double                h,
+                              const arma::Mat<int>& alphas) {
+  int n  = X.n_cols;
+  int d  = X.n_rows;
+  int Dm = alphas.n_rows;
+  double h_pow_d = std::pow(h, d);
+  arma::vec log_loo(n);
+
+  for (int i = 0; i < n; i++) {
+    arma::mat U_quad = Rcpp::as<arma::mat>(U_quad_list[i]);
+    if (U_quad.n_cols < 2) {
+      log_loo(i) = -arma::datum::inf;
+      continue;
+    }
+
+    // 1. Gram matrix for observation i
+    arma::mat Phi_q = build_phi_mat(U_quad / h, alphas);
+    arma::mat B = gram_weight(d, n_total_vec(i)) * (Phi_q * Phi_q.t());
+
+    // 2. Cholesky
+    arma::mat L_upper;
+    if (!arma::chol(L_upper, B)) {
+      log_loo(i) = -arma::datum::inf;
+      continue;
+    }
+    arma::mat L_lower = L_upper.t();
+
+    // 3. H_0 = L_lower^{-1} e_1
+    arma::vec e1(Dm, arma::fill::zeros);
+    e1(0) = 1.0;
+    arma::vec H_0 = arma::solve(arma::trimatl(L_lower), e1);
+    double norm_H0_sq = arma::dot(H_0, H_0);
+
+    // 4. Filter neighbors of X_i in the h-box directly from X
+    // Instead of creating U_obs = X - X_i, we filter indices
+    arma::uvec neighbors_idx(n);
+    arma::uword N_V = 0;
+    for (int j = 0; j < n; j++) {
+      bool in_box = true;
+      for (int l = 0; l < d; l++) {
+        if (std::abs(X(l, j) - X(l, i)) > h) {
+          in_box = false;
+          break;
+        }
+      }
+      if (in_box) neighbors_idx(N_V++) = j;
+    }
+
+    double estimate = 0.0;
+    if (N_V > 0) {
+      // 5. Phi_V and H_V for observations in V(h)
+      // We must center them for the estimator: (X_j - X_i) / h
+      arma::mat U_V(d, N_V);
+      for (arma::uword k = 0; k < N_V; k++) {
+        U_V.col(k) = (X.col(neighbors_idx(k)) - X.col(i)) / h;
+      }
+      arma::mat Phi_V = build_phi_mat(U_V, alphas);
+      arma::mat H_V   = arma::solve(arma::trimatl(L_lower), Phi_V);
+
+      estimate = arma::dot(H_0, arma::sum(H_V, 1)) / (static_cast<double>(n) * h_pow_d);
+    }
+
+    // 6. LOO correction
+    double f_loo_i = (static_cast<double>(n) * estimate - norm_H0_sq / h_pow_d) / (static_cast<double>(n) - 1.0);
+    log_loo(i) = (f_loo_i > 0) ? std::log(f_loo_i) : -arma::datum::inf;
+  }
+
+  return log_loo;
 }

@@ -55,11 +55,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cv_lp_fixed_h_m_cpp
+arma::vec cv_lp_fixed_h_m_cpp(const arma::mat& X, const Rcpp::List& U_quad_list, const arma::uvec& n_total_vec, double h, const arma::Mat<int>& alphas);
+RcppExport SEXP _densityLP_cv_lp_fixed_h_m_cpp(SEXP XSEXP, SEXP U_quad_listSEXP, SEXP n_total_vecSEXP, SEXP hSEXP, SEXP alphasSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type U_quad_list(U_quad_listSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type n_total_vec(n_total_vecSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type alphas(alphasSEXP);
+    rcpp_result_gen = Rcpp::wrap(cv_lp_fixed_h_m_cpp(X, U_quad_list, n_total_vec, h, alphas));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_densityLP_gram_matrix_cpp", (DL_FUNC) &_densityLP_gram_matrix_cpp, 4},
     {"_densityLP_lp_estimator_loo_cpp", (DL_FUNC) &_densityLP_lp_estimator_loo_cpp, 5},
     {"_densityLP_lp_estimator_cpp", (DL_FUNC) &_densityLP_lp_estimator_cpp, 5},
+    {"_densityLP_cv_lp_fixed_h_m_cpp", (DL_FUNC) &_densityLP_cv_lp_fixed_h_m_cpp, 5},
     {NULL, NULL, 0}
 };
 

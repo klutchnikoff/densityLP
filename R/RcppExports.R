@@ -13,19 +13,14 @@ gram_matrix_cpp <- function(U, h, alphas, n_total) {
     .Call(`_densityLP_gram_matrix_cpp`, U, h, alphas, n_total)
 }
 
-#' Full LP estimator with LOO self-influence term (C++ backend)
-#'
-#' Identical to [lp_estimator_cpp()] but additionally returns
-#' \eqn{\|H_0\|^2 = (B_\gamma^{-1})_{11}}, the self-influence scalar needed
-#' for the algebraic LOO correction
-#' \eqn{\hat f_{\gamma,-i}(X_i) = (n \hat f_\gamma(X_i) - h^{-d}\|H_0\|^2) / (n-1)}.
+#' Full LP estimator with LOO self-influence term and variance (C++ backend)
 #'
 #' @param U_quad Numeric matrix d x N of quadrature points centred at t.
 #' @param n_total Integer, total draws in \eqn{[-h,h]^d}.
 #' @param U_obs Numeric matrix d x n of all observations centred at t.
 #' @param h Bandwidth (scalar > 0).
 #' @param alphas Integer matrix D_m x d of multi-indices.
-#' @return Numeric vector of length 2: \code{c(estimate, norm_H0_sq)}.
+#' @return Numeric vector of length 3: \code{c(estimate, norm_H0_sq, variance)}.
 #' @keywords internal
 lp_estimator_loo_cpp <- function(U_quad, n_total, U_obs, h, alphas) {
     .Call(`_densityLP_lp_estimator_loo_cpp`, U_quad, n_total, U_obs, h, alphas)
@@ -44,5 +39,19 @@ lp_estimator_loo_cpp <- function(U_quad, n_total, U_obs, h, alphas) {
 #' @keywords internal
 lp_estimator_cpp <- function(U_quad, n_total, U_obs, h, alphas) {
     .Call(`_densityLP_lp_estimator_cpp`, U_quad, n_total, U_obs, h, alphas)
+}
+
+#' Optimized LOO CV scores for a fixed (m, h) grid point (C++ backend)
+#'
+#' @param X Numeric matrix d x n of all observations.
+#' @param U_quad_list List of d x N_i matrices of quadrature points.
+#' @param n_total_vec Integer vector of total draws in the box for each point.
+#'   (length n).
+#' @param h Bandwidth (scalar > 0).
+#' @param alphas Integer matrix D_m x d of multi-indices.
+#' @return Numeric vector of length n: log(f_loo(X_i)).
+#' @keywords internal
+cv_lp_fixed_h_m_cpp <- function(X, U_quad_list, n_total_vec, h, alphas) {
+    .Call(`_densityLP_cv_lp_fixed_h_m_cpp`, X, U_quad_list, n_total_vec, h, alphas)
 }
 
