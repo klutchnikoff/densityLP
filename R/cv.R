@@ -77,7 +77,7 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
     }
   }
 
-  idx <- which(scores == min(scores, na.rm = TRUE), arr.ind = TRUE)[1L, ]
+  idx <- arrayInd(which.min(scores), dim(scores))
 
   fail_rate <- n_fail[idx[1L], idx[2L]] / n
   if (fail_rate >= 0.25) {
