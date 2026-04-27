@@ -97,7 +97,7 @@ check_m_grid <- function(m_grid) {
 check_domain <- function(domain, d) {
   if (!inherits(domain, "domain_lp")) {
     stop(
-      "`domain` must be an 'domain_lp' object ",
+      "`domain` must be a 'domain_lp' object ",
       "(see domain_Rd(), domain_from_indicator(), domain_sector())."
     )
   }
