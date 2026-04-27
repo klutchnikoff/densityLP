@@ -31,6 +31,7 @@ LinkingTo:
 Suggests:
     testthat (>= 3.0.0),
     rmarkdown,
-    knitr
+    knitr,
+    bench
 VignetteBuilder: knitr
 Config/testthat/edition: 3
