@@ -59,7 +59,24 @@ sampler_sector <- function(k) {
     y_lo <- max(0, ty - h)
     y_hi <- ty + h
     accepted <- matrix(NA_real_, 2L, 0L)
+    max_iter <- 1000L
+    iter <- 0L
     while (ncol(accepted) < N_quad) {
+      iter <- iter + 1L
+      if (iter > max_iter) {
+        stop(sprintf(
+          paste0(
+            "sampler_sector: could not collect %d quadrature points after %d ",
+            "iterations for t = (%.4g, %.4g), h = %.4g. ",
+            "Try increasing N_quad or reducing h."
+          ),
+          N_quad,
+          max_iter,
+          tx,
+          ty,
+          h
+        ))
+      }
       need <- ceiling(2 * (N_quad - ncol(accepted)))
       x <- runif(need, x_lo, x_hi)
       y <- runif(need, y_lo, y_hi)
