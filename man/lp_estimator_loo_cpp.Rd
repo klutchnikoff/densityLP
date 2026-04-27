@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{lp_estimator_loo_cpp}
 \alias{lp_estimator_loo_cpp}
-\title{Full LP estimator with LOO self-influence term (C++ backend)}
+\title{Full LP estimator with LOO self-influence term and variance (C++ backend)}
 \usage{
 lp_estimator_loo_cpp(U_quad, n_total, U_obs, h, alphas)
 }
@@ -18,12 +18,9 @@ lp_estimator_loo_cpp(U_quad, n_total, U_obs, h, alphas)
 \item{alphas}{Integer matrix D_m x d of multi-indices.}
 }
 \value{
-Numeric vector of length 2: \code{c(estimate, norm_H0_sq)}.
+Numeric vector of length 3: \code{c(estimate, norm_H0_sq, variance)}.
 }
 \description{
-Identical to \code{\link[=lp_estimator_cpp]{lp_estimator_cpp()}} but additionally returns
-\eqn{\|H_0\|^2 = (B_\gamma^{-1})_{11}}, the self-influence scalar needed
-for the algebraic LOO correction
-\eqn{\hat f_{\gamma,-i}(X_i) = (n \hat f_\gamma(X_i) - h^{-d}\|H_0\|^2) / (n-1)}.
+Full LP estimator with LOO self-influence term and variance (C++ backend)
 }
 \keyword{internal}

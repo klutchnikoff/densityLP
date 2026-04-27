@@ -20,7 +20,7 @@ density_lp_point(X, t, h, m, domain, N_quad)
 \item{N_quad}{Number of Monte Carlo quadrature points.}
 }
 \value{
-Scalar estimate of f(t).
+Named numeric vector of length 2: \code{estimate} and \code{variance}.
 }
 \description{
 Estimate the density at a single point t using local polynomials
