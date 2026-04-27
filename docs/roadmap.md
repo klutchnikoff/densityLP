@@ -37,7 +37,7 @@ L'implémentation actuelle suit une séparation stricte entre la géométrie (R)
 ### Phase 2 — Optimisation et Robustesse (En cours 🚧)
 - [x] Migration de la boucle de Cross-Validation (LOO) vers le C++.
 - [x] Migration de Quarto vers RMarkdown pour la compatibilité CRAN.
-- [ ] **Batch Processing :** Passer du calcul point par point à un calcul par blocs en C++ pour réduire l'overhead `.Call`.
+- [ ] **Batch Processing :** Passer du calcul point par point à un calcul par blocs en C++ pour réduire l'overhead `.Call`. (⭐ *Priorité immédiate*)
 - [ ] **Parallélisation :** Intégration native de `future.apply` dans `density_lp` pour les grilles haute résolution.
 - [ ] **API Cleanup :** Retourner des objets (listes nommées) plutôt que des vecteurs pour les résultats internes.
 
@@ -70,6 +70,25 @@ Le backend C++ fournit cette valeur "gratuitement" lors du calcul de l'estimateu
 - `src/` : Backend Armadillo (Gram matrix, LOO correction, variance).
 - `vignettes/` : Guides d'utilisation au format RMarkdown.
 - `docs/` : Notes théoriques et roadmap.
+
+---
+
+## 5. Guide du Contributeur
+
+### Configuration de l'environnement
+1. **Dépendances système :** `pandoc` (vignettes) et `libxml2` (roxygen2). Sur macOS : `brew install pandoc libxml2`.
+2. **Setup Git :** Lancer `bash setup.sh` pour activer les hooks de pré-commit (vérification de la doc, formatage et tests).
+3. **Dépendances R :** Installer les packages listés dans le `DESCRIPTION` (notamment `RcppArmadillo`, `roxygen2`, `testthat`, `rmarkdown` et `bench`).
+
+### Workflow de développement
+- **C++ :** Si vous modifiez les fichiers dans `src/`, lancez impérativement `Rcpp::compileAttributes()` pour mettre à jour les exports R.
+- **Documentation :** Utilisez `roxygen2::roxygenise()` pour regénérer les fichiers `.Rd` dans `man/`.
+- **Tests :** Lancez `testthat::test_local()` régulièrement. Les hooks bloqueront le commit ou le push en cas d'échec.
+
+### Workflow Git
+- **Branches :** Créez une branche propre par fonctionnalité ou correctif (`feat/nom`, `fix/nom`).
+- **Pull Requests :** Travaillez via des PR même si vous avez les droits d'écriture, afin de laisser le CI valider le code et de permettre une relecture.
+- **Qualité :** Le `R CMD check --as-cran` doit passer intégralement sans erreur ni warning avant chaque fusion.
 
 ---
 *Dernière mise à jour : 27 Avril 2026.*
