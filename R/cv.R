@@ -43,35 +43,36 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
   n_fail <- matrix(0L, length(m_grid), length(h_grid))
 
   sampler <- domain$sampler_factory()
+  # We transpose X once for C++ (d x n)
+  Xt <- t(X)
 
-  for (im in seq_along(m_grid)) {
-    m <- m_grid[im]
-    alphas <- build_alphas(m, d)
+  for (ih in seq_along(h_grid)) {
+    h <- h_grid[ih]
 
-    for (ih in seq_along(h_grid)) {
-      h <- h_grid[ih]
-      log_loo <- numeric(n)
-
-      for (i in seq_len(n)) {
-        t_i <- X[i, , drop = TRUE]
-        s <- tryCatch(sampler(N_quad, t_i, h), error = function(e) NULL)
-
-        if (is.null(s) || ncol(s$points) < 2L) {
-          n_fail[im, ih] <- n_fail[im, ih] + 1L
-          log_loo[i] <- -Inf
-          next
-        }
-
-        U_obs <- t(sweep(X, 2L, t_i, "-"))
-        res <- lp_estimator_loo_cpp(s$points, s$n_total, U_obs, h, alphas)
-
-        f_hat_i <- res[1L]
-        norm_H0_sq <- res[2L]
-        f_loo_i <- (n * f_hat_i - norm_H0_sq / h^d) / (n - 1L)
-
-        log_loo[i] <- if (f_loo_i > 0) log(f_loo_i) else -Inf
+    # Draw quadrature points for each observation i (only once per h)
+    s_list <- vector("list", n)
+    n_total_vec <- integer(n)
+    for (i in seq_len(n)) {
+      t_i <- X[i, , drop = TRUE]
+      s <- tryCatch(sampler(N_quad, t_i, h), error = function(e) NULL)
+      if (is.null(s)) {
+        s_list[[i]] <- matrix(0, d, 0)
+        n_total_vec[i] <- 0L
+      } else {
+        s_list[[i]] <- s$points
+        n_total_vec[i] <- s$n_total
       }
+    }
 
+    for (im in seq_along(m_grid)) {
+      m <- m_grid[im]
+      alphas <- build_alphas(m, d)
+
+      # Call the optimized C++ backend for the full observation loop
+      log_loo <- cv_lp_fixed_h_m_cpp(Xt, s_list, n_total_vec, h, alphas)
+
+      # Track failures (infinite scores)
+      n_fail[im, ih] <- sum(!is.finite(log_loo))
       scores[im, ih] <- -mean(log_loo)
     }
   }
