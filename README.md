@@ -1,5 +1,4 @@
 
-
 # densityLP
 
 **Local Polynomial Density Estimation on Complicated Domains**
@@ -40,7 +39,7 @@ fit <- density_lp(X, t_grid = t_grid, h = 0.2, m = 1L,
 plot(fit, main = "Local linear estimate — unit square")
 ```
 
-![](README_files/figure-commonmark/square-example-1.png)
+![](README_files/figure-gfm/square-example-1.png)<!-- -->
 
 ### Spatial point pattern on an L-shaped domain
 
@@ -53,19 +52,19 @@ integration domain automatically from `Window(pp)` and returns a
 library(spatstat.geom)
 ```
 
-    Loading required package: spatstat.data
+    ## Loading required package: spatstat.data
 
-    Loading required package: spatstat.univar
+    ## Loading required package: spatstat.univar
 
-    spatstat.univar 3.1-7
+    ## spatstat.univar 3.1-7
 
-    spatstat.geom 3.7-3
+    ## spatstat.geom 3.7-3
 
 ``` r
 library(spatstat.random)
 ```
 
-    spatstat.random 3.4-5
+    ## spatstat.random 3.4-5
 
 ``` r
 # L-shaped window and inhomogeneous Poisson process
@@ -85,7 +84,7 @@ plot(fit, main = "Local linear estimate — L-shaped domain")
 plot(pp, add = TRUE, pch = ".", col = "#00000050")
 ```
 
-![](README_files/figure-commonmark/L-example-1.png)
+![](README_files/figure-gfm/L-example-1.png)<!-- -->
 
 Pixels outside the window are automatically set to `NA`.
 

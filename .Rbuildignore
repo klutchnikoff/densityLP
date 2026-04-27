@@ -5,6 +5,10 @@
 ^\.gitignore$
 ^vignettes/.*\.html$
 ^vignettes/.*_files$
+^vignettes/.*_cache$
+^\.githooks$
+^README_files$
+^setup\.sh$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^README\.qmd$

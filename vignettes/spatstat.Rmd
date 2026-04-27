@@ -1,14 +1,9 @@
 ---
 title: "density_lp_ppp: local polynomial estimation on spatial point patterns"
-format:
-  html:
-    toc: true
-    fig-width: 8
-    fig-height: 5
-    code-fold: true
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{density_lp_ppp: local polynomial estimation on spatial point patterns}
-  %\VignetteEngine{quarto::quarto}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -41,8 +36,9 @@ fit_disc <- density_lp_ppp(pp_disc, h = 0.35, m = 1L, N_quad = 500L)
 
 ```{r disc-plot, fig.cap="Local linear density estimate on the unit disc (n = 500, h = 0.35). True density: 1/π ≈ 0.318."}
 plot(fit_disc,
-     main  = expression("Local linear estimate  —  unit disc,  " * f == 1/pi),
-     riblab = "density")
+  main = expression("Local linear estimate  —  unit disc,  " * f == 1 / pi),
+  riblab = "density"
+)
 plot(pp_disc, add = TRUE, pch = ".", col = "#00000040")
 ```
 
@@ -70,22 +66,23 @@ L_win <- owin(poly = list(
 ))
 
 lambda_fun <- function(x, y) {
-  400 * exp(-4 * ((x - 1.5)^2 + (y - 0.4)^2)) +
-    150 * exp(-4 * ((x - 0.3)^2 + (y - 1.5)^2))
+  400 * exp(-4 * ((x - 1.5) * (x - 1.5) + (y - 0.4) * (y - 0.4))) +
+    150 * exp(-4 * ((x - 0.3) * (x - 0.3) + (y - 1.5) * (y - 1.5)))
 }
 ```
 
 ```{r L-sim, cache=TRUE}
 set.seed(2L)
-pp_L   <- rpoispp(lambda_fun, win = L_win)
-fit_L  <- density_lp_ppp(pp_L, h = 0.3, m = 1L, N_quad = 500L)
+pp_L <- rpoispp(lambda_fun, win = L_win)
+fit_L <- density_lp_ppp(pp_L, h = 0.3, m = 1L, N_quad = 500L)
 cat("n =", pp_L$n, "\n")
 ```
 
 ```{r L-plot, fig.cap="Local linear density estimate on the L-shaped domain. The window boundary and NA mask are handled automatically."}
 plot(fit_L,
-     main   = "Local linear estimate  —  L-shaped domain",
-     riblab = "density")
+  main = "Local linear estimate  —  L-shaped domain",
+  riblab = "density"
+)
 plot(pp_L, add = TRUE, pch = ".", col = "#00000040")
 ```
 
@@ -94,8 +91,8 @@ par(mfrow = c(1L, 2L))
 
 # True density (intensity / E[n])
 lambda_im <- as.im(lambda_fun, W = L_win)
-En        <- integral(lambda_im)
-true_im   <- lambda_im / En
+En <- integral(lambda_im)
+true_im <- lambda_im / En
 plot(true_im, main = "True density", riblab = "density")
 
 plot(fit_L, main = "Estimated density", riblab = "density")

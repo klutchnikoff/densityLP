@@ -33,3 +33,4 @@ tests/testthat/Rplots.pdf
 # testthat snapshots (keep only intentional ones)
 tests/testthat/_snaps/
 README_files/
+README.html
