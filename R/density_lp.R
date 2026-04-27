@@ -30,18 +30,40 @@ density_lp <- function(X, t_grid, h, m = 0L, domain, N_quad = 500L) {
   p <- nrow(t_grid)
   estimate <- numeric(p)
   variance <- numeric(p)
+  n_fail <- 0L
 
   for (i in seq_len(p)) {
-    res <- density_lp_point(
-      X = X,
-      t = t_grid[i, ],
-      h = h,
-      m = m,
-      domain = domain,
-      N_quad = N_quad
+    res <- tryCatch(
+      density_lp_point(
+        X = X,
+        t = t_grid[i, ],
+        h = h,
+        m = m,
+        domain = domain,
+        N_quad = N_quad
+      ),
+      error = function(e) NULL
     )
-    estimate[i] <- res["estimate"]
-    variance[i] <- res["variance"]
+    if (is.null(res)) {
+      estimate[i] <- NA_real_
+      variance[i] <- NA_real_
+      n_fail <- n_fail + 1L
+    } else {
+      estimate[i] <- res["estimate"]
+      variance[i] <- res["variance"]
+    }
+  }
+
+  if (n_fail > 0L) {
+    warning(
+      sprintf(
+        "%d/%d grid point(s) failed (V(h) empty or Gram matrix singular). ",
+        n_fail,
+        p
+      ),
+      "Corresponding estimates are NA. Consider increasing N_quad or reducing h.",
+      call. = FALSE
+    )
   }
 
   structure(

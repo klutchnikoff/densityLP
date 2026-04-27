@@ -201,6 +201,23 @@ test_that("density_lp: estimates close to 1 for Uniform([0,1]^2), m=0", {
   )
 })
 
+test_that("density_lp: NA and warning when a grid point has empty V(h)", {
+  set.seed(1L)
+  X <- matrix(runif(50L * 2L, 0.6, 1), 50L, 2L)
+  # domain restricted to [0.5, 1]^2; t=(0.1, 0.1) with h=0.1 gives empty V(h)
+  dom <- domain_from_indicator(function(x, y) {
+    x >= 0.5 & x <= 1 & y >= 0.5 & y <= 1
+  })
+  t_grid <- matrix(c(0.7, 0.7, 0.1, 0.1), nrow = 2L, byrow = TRUE)
+  expect_warning(
+    res <- density_lp(X, t_grid, h = 0.1, m = 0L, domain = dom, N_quad = 200L),
+    "grid point"
+  )
+  expect_true(is.na(res$estimate[2L]))
+  expect_true(is.na(res$variance[2L]))
+  expect_false(is.na(res$estimate[1L]))
+})
+
 test_that("density_lp: m=1 integrates approximately to 1 on interior grid", {
   set.seed(101L)
   n <- 1000L
