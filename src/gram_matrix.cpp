@@ -115,13 +115,8 @@ arma::vec lp_estimator_loo_cpp(const arma::mat&      U_quad,
     // estimate = (1/n) * sum Z_i
     // variance = (1/n^2) * sum Z_i^2
     arma::vec Z = (H_V.t() * H_0) / std::pow(h, d);
-    estimate = arma::mean(Z) * (static_cast<double>(N_V) / static_cast<double>(n));
-    
-    // Note: mean(Z) = sum(Z) / N_V. We need sum(Z) / n.
-    // Correct formula:
-    double sum_Z = arma::sum(Z);
-    estimate = sum_Z / static_cast<double>(n);
-    
+    estimate = arma::sum(Z) / static_cast<double>(n);
+
     double sum_Z2 = arma::dot(Z, Z);
     variance = sum_Z2 / (static_cast<double>(n) * static_cast<double>(n));
   }

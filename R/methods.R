@@ -1,11 +1,37 @@
+# S3 methods for "density_lp_ppp" -----------------------------------------------
+
+#' Print a density_lp_ppp object
+#' @param x A `"density_lp_ppp"` object.
+#' @param ... Ignored.
+#' @return `x` invisibly.
+#' @export
+print.density_lp_ppp <- function(x, ...) {
+  cat("Local polynomial density estimate (spatstat)\n")
+  cat(sprintf("  h      : %g\n", x$h))
+  cat(sprintf("  m      : %d\n", x$m))
+  cat(sprintf("  N_quad : %d\n", x$N_quad))
+  cat(sprintf("  Grid   : %d x %d pixels\n", length(x$xcol), length(x$yrow)))
+  rng <- range(x$v, na.rm = TRUE)
+  cat(sprintf("  Range  : [%.5g, %.5g]\n", rng[1L], rng[2L]))
+  invisible(x)
+}
+
+#' Plot a density_lp_ppp object
+#' @param x A `"density_lp_ppp"` object.
+#' @param ... Passed to [spatstat.geom::plot.im()].
+#' @return `x` invisibly.
+#' @export
+plot.density_lp_ppp <- function(x, ...) {
+  NextMethod()
+  invisible(x)
+}
+
 # S3 methods for "density_lp" ---------------------------------------------------
 
 #' Print a density_lp object
 #' @param x A `"density_lp"` object.
 #' @param ... Ignored.
 #' @return `x` invisibly.
-#' @importFrom grDevices grey
-#' @importFrom graphics image
 #' @export
 print.density_lp <- function(x, ...) {
   cat("Local polynomial density estimate\n")
@@ -28,6 +54,8 @@ print.density_lp <- function(x, ...) {
 #' @param main Plot title (default: bandwidth and degree).
 #' @param ... Passed to the underlying plot function.
 #' @return `x` invisibly.
+#' @importFrom grDevices grey
+#' @importFrom graphics image
 #' @export
 plot.density_lp <- function(
   x,

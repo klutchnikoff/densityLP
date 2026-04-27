@@ -14,8 +14,8 @@ build_alphas <- densityLP:::build_alphas
 gram_matrix_cpp <- densityLP:::gram_matrix_cpp
 ```
 
-We compare the pure-R implementation of `gram_matrix` (based on
-`matrixStats::colProds` + `tcrossprod`) against the C++ backend
+We compare the pure-R implementation of `gram_matrix` (based on base R
+`apply` + `tcrossprod`) against the C++ backend
 (`gram_matrix_cpp`, RcppArmadillo) across varying numbers of quadrature
 points $N$ and polynomial degrees $m$.
 
@@ -45,7 +45,7 @@ gram_matrix_r <- function(s, h, alphas) {
   Phi <- matrix(NA_real_, Dm, N)
   for (j in seq_len(Dm)) {
     powered <- U_sc^alphas[j, ]
-    Phi[j, ] <- matrixStats::colProds(powered)
+    Phi[j, ] <- apply(powered, 2L, prod)
   }
   weight <- (2 * h)^d / (s$n_total * h^d)
   weight * tcrossprod(Phi)
@@ -192,8 +192,18 @@ Domain: unit square $[0,1]^2$, target $t = (0.5, 0.5)$ (pure interior, so
 $V(h) = [0.2, 0.8]^2 \subset [0,1]^2$ and all quadrature points are accepted).
 
 ```{r e2e-def}
-build_Phi <- densityLP:::build_Phi
 lp_estimator_cpp <- densityLP:::lp_estimator_cpp
+
+build_phi_r <- function(U, h, alphas) {
+  Dm <- nrow(alphas)
+  N  <- ncol(U)
+  U_sc <- U / h
+  Phi <- matrix(NA_real_, Dm, N)
+  for (j in seq_len(Dm)) {
+    Phi[j, ] <- apply(U_sc^alphas[j, ], 2L, prod)
+  }
+  Phi
+}
 
 density_lp_point_r <- function(X, t, h, s, alphas) {
   d <- ncol(X)
@@ -209,7 +219,7 @@ density_lp_point_r <- function(X, t, h, s, alphas) {
   if (ncol(U_V) == 0L) {
     return(0)
   }
-  Phi_V <- build_Phi(U_V, h, alphas)
+  Phi_V <- build_phi_r(U_V, h, alphas)
   H_V <- forwardsolve(t(L), Phi_V)
   (h^(-d) / n) * sum(H_0 * H_V)
 }

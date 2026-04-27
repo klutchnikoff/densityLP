@@ -42,6 +42,8 @@ density_lp_ppp <- function(pp, h, m = 0L, N_quad = 500L, nx = 128L, ny = 128L) {
     stop("No grid points fall inside Window(pp). Try increasing nx or ny.")
   }
 
+  mc <- match.call()
+
   X <- cbind(pp$x, pp$y)
   fit <- density_lp(
     X,
@@ -59,10 +61,18 @@ density_lp_ppp <- function(pp, h, m = 0L, N_quad = 500L, nx = 128L, ny = 128L) {
   values <- rep(NA_real_, nx * ny)
   values[inside] <- fit$estimate
 
-  spatstat.geom::im(
+  im_obj <- spatstat.geom::im(
     t(matrix(values, nrow = nx, ncol = ny)),
     xcol = grid_x,
     yrow = grid_y,
     unitname = spatstat.geom::unitname(pp)
+  )
+
+  structure(
+    c(
+      unclass(im_obj),
+      list(h = h, m = as.integer(m), N_quad = as.integer(N_quad), call = mc)
+    ),
+    class = c("density_lp_ppp", "im")
   )
 }

@@ -26,36 +26,3 @@ build_alphas <- function(m, d) {
   colnames(alphas) <- paste0("x", seq_len(d))
   alphas
 }
-
-#' Evaluate rescaled monomials Phi_gamma(u) for a collection of points
-#'
-#' For each point u_k (column of U), computes the vector
-#' \eqn{\varphi_\alpha(u_k / h) = \prod_j (u_{kj} / h)^{\alpha_j}} for all multi-indices
-#' alpha in `alphas`.
-#'
-#' @param U Numeric matrix of size d x N (N points of dimension d).
-#' @param h Bandwidth (scalar > 0).
-#' @param alphas Integer matrix D_m x d of multi-indices (output of
-#'   `build_alphas`).
-#' @return Numeric matrix of size D_m x N.
-#' @keywords internal
-build_Phi <- function(U, h, alphas) {
-  stopifnot(is.matrix(U), is.numeric(U))
-  stopifnot(is.numeric(h), length(h) == 1L, h > 0)
-  stopifnot(is.matrix(alphas), nrow(alphas) >= 1L)
-  stopifnot(nrow(U) == ncol(alphas))
-
-  d <- nrow(U)
-  N <- ncol(U)
-  Dm <- nrow(alphas)
-
-  U_sc <- U / h # d x N: rescaled coordinates
-
-  # Phi[j, k] = prod_{l=1}^d (U_sc[l, k])^{alphas[j, l]}
-  Phi <- matrix(NA_real_, Dm, N)
-  for (j in seq_len(Dm)) {
-    powered <- U_sc^alphas[j, ] # d x N, element-wise
-    Phi[j, ] <- matrixStats::colProds(powered)
-  }
-  Phi
-}
