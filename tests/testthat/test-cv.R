@@ -55,7 +55,9 @@ test_that("cv_density_lp: h_hat is in h_grid", {
 
 test_that("cv_density_lp: selected score is the minimum finite score", {
   cv <- make_square_cv()
-  best <- cv$scores[paste0("m=", cv$m_hat), as.character(round(cv$h_hat, 6L))]
+  row_idx <- which(cv$grids$m == cv$m_hat)
+  col_idx <- which(cv$grids$h == cv$h_hat)
+  best <- cv$scores[row_idx, col_idx]
   expect_equal(best, min(cv$scores, na.rm = TRUE))
 })
 
@@ -133,4 +135,45 @@ test_that("cv_density_lp_ppp: m_hat and h_hat are in the grids", {
 
 test_that("cv_density_lp_ppp: error if input is not a ppp", {
   expect_error(cv_density_lp_ppp(matrix(1, 10, 2), h_grid = 0.3), "ppp")
+})
+
+# ── Integer storage ────────────────────────────────────────────────────────────
+
+test_that("cv_density_lp: m_grid stored as integer in grids$m", {
+  cv <- make_square_cv(m_grid = c(0, 1)) # passed as double
+  expect_type(cv$grids$m, "integer")
+})
+
+# ── print CV score not NA ──────────────────────────────────────────────────────
+
+test_that("print.cv_density_lp: CV score is not NA", {
+  cv <- make_square_cv()
+  row_idx <- which(cv$grids$m == cv$m_hat)
+  col_idx <- which(cv$grids$h == cv$h_hat)
+  score <- cv$scores[row_idx, col_idx]
+  expect_false(is.na(score))
+  expect_true(is.finite(score))
+})
+
+# ── summary.cv_density_lp ─────────────────────────────────────────────────────
+
+test_that("summary.cv_density_lp: produces output and returns invisibly", {
+  cv <- make_square_cv()
+  expect_output(summary(cv), "Selected")
+  expect_output(summary(cv), "CV score matrix")
+  expect_identical(withVisible(summary(cv))$visible, FALSE)
+})
+
+# ── Warning on high failure rate ───────────────────────────────────────────────
+
+test_that("cv_density_lp: warns when >25% LOO evaluations fail", {
+  set_seed()
+  n <- 30L
+  X <- matrix(runif(n * 2L), n, 2L)
+  dom <- domain_Rd(2L)
+  # h very small -> most V(h) neighbourhoods empty -> high failure rate
+  expect_warning(
+    cv_density_lp(X, h_grid = c(0.01), m_grid = 0L, domain = dom, N_quad = 50L),
+    "failed"
+  )
 })

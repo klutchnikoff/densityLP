@@ -218,6 +218,56 @@ test_that("density_lp: NA and warning when a grid point has empty V(h)", {
   expect_false(is.na(res$estimate[1L]))
 })
 
+# ── Integer storage of params ──────────────────────────────────────────────────
+
+test_that("density_lp: params$m and params$N_quad are stored as integers", {
+  set.seed(1L)
+  X <- matrix(runif(50L * 2L), 50L, 2L)
+  res <- density_lp(
+    X,
+    matrix(0.5, 1L, 2L),
+    h = 0.3,
+    m = 1, # passed as double
+    domain = domain_Rd(2L),
+    N_quad = 200 # passed as double
+  )
+  expect_type(res$params$m, "integer")
+  expect_type(res$params$N_quad, "integer")
+})
+
+# ── summary.density_lp ────────────────────────────────────────────────────────
+
+test_that("summary.density_lp: produces output and returns invisibly", {
+  set.seed(20L)
+  X <- matrix(runif(100L * 2L), 100L, 2L)
+  res <- density_lp(
+    X,
+    matrix(c(0.3, 0.5, 0.7, 0.5), nrow = 2L),
+    h = 0.3,
+    m = 1L,
+    domain = domain_Rd(2L),
+    N_quad = 200L
+  )
+  expect_output(summary(res), "Bandwidth")
+  expect_identical(withVisible(summary(res))$visible, FALSE)
+})
+
+# ── Multiple failures ─────────────────────────────────────────────────────────
+
+test_that("density_lp: n_fail correctly counts multiple failed grid points", {
+  X <- matrix(runif(50L * 2L, 0.6, 1), 50L, 2L)
+  dom <- domain_from_indicator(function(x, y) {
+    x >= 0.5 & x <= 1 & y >= 0.5 & y <= 1
+  })
+  # Both grid points have empty V(h): observations are in [0.6,1]^2 but t is at corner [0,0.1]
+  t_bad <- matrix(c(0.05, 0.05, 0.08, 0.08), nrow = 2L, byrow = TRUE)
+  expect_warning(
+    res <- density_lp(X, t_bad, h = 0.04, m = 0L, domain = dom, N_quad = 100L)
+  )
+  expect_equal(res$stats$n_fail, 2L)
+  expect_true(all(is.na(res$estimate)))
+})
+
 test_that("density_lp: m=1 integrates approximately to 1 on interior grid", {
   set.seed(101L)
   n <- 1000L

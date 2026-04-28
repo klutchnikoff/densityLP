@@ -168,7 +168,9 @@ arma::vec cv_lp_fixed_h_m_cpp(const arma::mat&      X,
 
   for (int i = 0; i < n; i++) {
     arma::mat U_quad = Rcpp::as<arma::mat>(U_quad_list[i]);
-    if (U_quad.n_cols < 2) {
+    // Return -inf (not an error) so the loop continues for other observations.
+    // The R side counts !is.finite(log_loo) as n_fail and warns accordingly.
+    if (U_quad.n_cols < 2) {          // empty neighbourhood V(h)
       log_loo(i) = -arma::datum::inf;
       continue;
     }
@@ -179,7 +181,7 @@ arma::vec cv_lp_fixed_h_m_cpp(const arma::mat&      X,
 
     // 2. Cholesky
     arma::mat L_upper;
-    if (!arma::chol(L_upper, B)) {
+    if (!arma::chol(L_upper, B)) {    // singular Gram matrix
       log_loo(i) = -arma::datum::inf;
       continue;
     }

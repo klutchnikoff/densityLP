@@ -15,3 +15,7 @@ An \code{"domain_lp"} object (d = 2).
 \description{
 Polynomial sector \eqn{D_k = \{(x, y) : x \in [0, 1],\, 0 \le y \le x^k\}}
 }
+\examples{
+dom <- domain_sector(k = 2)
+print(dom)
+}

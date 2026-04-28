@@ -24,6 +24,9 @@ print.domain_lp <- function(x, ...) {
 #'
 #' @param d Space dimension (integer >= 1).
 #' @return An `"domain_lp"` object.
+#' @examples
+#' dom <- domain_Rd(2)
+#' print(dom)
 #' @export
 domain_Rd <- function(d) {
   stopifnot(is.numeric(d), length(d) == 1L, is.finite(d), d >= 1, d == floor(d))
@@ -44,6 +47,10 @@ domain_Rd <- function(d) {
 #'   coordinate axis), returning a logical vector of length `n`.  The dimension
 #'   `d` is inferred from `length(formals(is_in_domain))`.
 #' @return An `"domain_lp"` object.
+#' @examples
+#' is_in <- function(x, y) x^2 + y^2 <= 1
+#' dom <- domain_from_indicator(is_in)
+#' print(dom)
 #' @export
 domain_from_indicator <- function(is_in_domain) {
   stopifnot(is.function(is_in_domain))
@@ -66,6 +73,10 @@ domain_from_indicator <- function(is_in_domain) {
 #'
 #' @param win An `owin` object (spatstat.geom).
 #' @return An `"domain_lp"` object (d = 2).
+#' @examples
+#' win <- spatstat.geom::owin(c(0, 1), c(0, 1))
+#' dom <- domain_from_owin(win)
+#' print(dom)
 #' @export
 domain_from_owin <- function(win) {
   stopifnot(inherits(win, "owin"))

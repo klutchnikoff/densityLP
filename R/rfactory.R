@@ -75,14 +75,27 @@ rfactory <- function(f, is_in_domain = NULL, box, M = NULL, N_pilot = 2000L) {
   }
   stopifnot(is.numeric(M), length(M) == 1L, is.finite(M), M > 0)
 
-  function(n) {
+  function(n, max_iter = 10000L) {
     n <- as.integer(n)
     stopifnot(n >= 1L)
     batch <- max(1000L, n * 10L)
     out <- matrix(NA_real_, n, d)
     filled <- 0L
+    iter <- 0L
 
     while (filled < n) {
+      iter <- iter + 1L
+      if (iter > max_iter) {
+        stop(
+          sprintf(
+            "rfactory: collected only %d/%d points after %d iterations. ",
+            filled,
+            n,
+            max_iter
+          ),
+          "Acceptance rate may be too low: check `box`, `f`, and `is_in_domain`."
+        )
+      }
       cands <- .sample_box(batch)
       if (!is.null(is_in_domain)) {
         cands <- cands[.call_fn(is_in_domain, cands), , drop = FALSE]

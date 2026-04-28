@@ -36,6 +36,14 @@ using the algebraic LOO correction
 where \eqn{\|H_0^{(X_i)}\|^2 = (B_{X_i}^{-1})_{11}} is the self-influence
 scalar returned as a byproduct of the C++ pipeline.
 }
+\examples{
+set.seed(1)
+X <- matrix(runif(30 * 2), ncol = 2)
+dom <- domain_Rd(2)
+cv <- cv_density_lp(X, h_grid = c(0.2, 0.4), m_grid = 0:1, domain = dom, N_quad = 100L)
+print(cv)
+
+}
 \seealso{
 \code{\link[=density_lp]{density_lp()}}, \code{\link[=cv_density_lp_ppp]{cv_density_lp_ppp()}}
 }

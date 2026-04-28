@@ -139,7 +139,65 @@ plot.density_lp <- function(
   invisible(x)
 }
 
+#' Summary of a density_lp_ppp object
+#' @param object A `"density_lp_ppp"` object.
+#' @param ... Ignored.
+#' @return `object` invisibly.
+#' @export
+summary.density_lp_ppp <- function(object, ...) {
+  cat("Local Polynomial Density Estimation Summary (spatstat)\n")
+  cat("-------------------------------------------------------\n")
+  cat(sprintf(
+    "Call         : %s\n",
+    paste(deparse(object$call), collapse = "\n")
+  ))
+  cat(sprintf("Domain       : %s\n", object$params$domain$label))
+  cat(sprintf("Observations : n = %d\n", object$stats$n_obs))
+  cat(sprintf(
+    "Grid         : %d x %d pixels\n",
+    length(object$xcol),
+    length(object$yrow)
+  ))
+  cat("\nParameters:\n")
+  cat(sprintf("  Bandwidth (h) : %g\n", object$params$h))
+  cat(sprintf("  Degree (m)    : %d\n", object$params$m))
+  cat(sprintf("  Quadrature    : %d MC points\n", object$params$N_quad))
+  if (!is.null(object$stats$n_fail) && object$stats$n_fail > 0L) {
+    cat(sprintf("  Note          : %d failure(s)\n", object$stats$n_fail))
+  }
+  cat("\nResults (estimate):\n")
+  print(summary(as.vector(object$v), na.rm = TRUE))
+  invisible(object)
+}
+
 # S3 methods for "cv_density_lp" ------------------------------------------------
+
+#' Summary of a cv_density_lp object
+#' @param object A `"cv_density_lp"` object.
+#' @param ... Ignored.
+#' @return `object` invisibly.
+#' @export
+summary.cv_density_lp <- function(object, ...) {
+  row_idx <- which(object$grids$m == object$m_hat)
+  col_idx <- which(object$grids$h == object$h_hat)
+  score <- object$scores[row_idx, col_idx]
+  cat("LOO Cross-Validation Summary -- local polynomial density\n")
+  cat("---------------------------------------------------------\n")
+  cat(sprintf(
+    "Call      : %s\n",
+    paste(deparse(object$call), collapse = "\n")
+  ))
+  cat(sprintf("m grid    : %s\n", paste(object$grids$m, collapse = ", ")))
+  cat(sprintf(
+    "h grid    : %s\n",
+    paste(round(object$grids$h, 4L), collapse = ", ")
+  ))
+  cat("\nCV score matrix (lower is better):\n")
+  print(round(object$scores, 4L))
+  cat(sprintf("\nSelected  : m = %d, h = %.6g\n", object$m_hat, object$h_hat))
+  cat(sprintf("CV score  : %.5g\n", score))
+  invisible(object)
+}
 
 #' Print a cv_density_lp object
 #' @param x A \code{"cv_density_lp"} object.
@@ -147,7 +205,9 @@ plot.density_lp <- function(
 #' @return \code{x} invisibly.
 #' @export
 print.cv_density_lp <- function(x, ...) {
-  score <- x$scores[paste0("m=", x$m_hat), as.character(round(x$h_hat, 6L))]
+  row_idx <- which(x$grids$m == x$m_hat)
+  col_idx <- which(x$grids$h == x$h_hat)
+  score <- x$scores[row_idx, col_idx]
   cat("LOO cross-validation -- local polynomial density\n")
   cat(sprintf("  Selected m : %d\n", x$m_hat))
   cat(sprintf("  Selected h : %.6g\n", x$h_hat))
