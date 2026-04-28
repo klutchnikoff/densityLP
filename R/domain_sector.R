@@ -4,6 +4,9 @@
 #'
 #' @param k Sector exponent (scalar > 0).
 #' @return An `"domain_lp"` object (d = 2).
+#' @examples
+#' dom <- domain_sector(k = 2)
+#' print(dom)
 #' @export
 domain_sector <- function(k) {
   stopifnot(is.numeric(k), length(k) == 1L, is.finite(k), k > 0)

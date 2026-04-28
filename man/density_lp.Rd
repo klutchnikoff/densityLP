@@ -28,3 +28,15 @@ An S3 object of class \code{"density_lp"}.
 \description{
 Local polynomial density estimation on a grid of target points
 }
+\examples{
+set.seed(1)
+X <- matrix(runif(50 * 2), ncol = 2)
+t_grid <- as.matrix(expand.grid(
+  x = seq(0.1, 0.9, length.out = 5),
+  y = seq(0.1, 0.9, length.out = 5)
+))
+dom <- domain_Rd(2)
+fit <- density_lp(X, t_grid = t_grid, h = 0.3, m = 1L, domain = dom, N_quad = 100L)
+print(fit)
+
+}

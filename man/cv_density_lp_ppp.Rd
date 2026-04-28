@@ -22,6 +22,13 @@ An S3 object of class \code{"cv_density_lp"} (see \code{\link[=cv_density_lp]{cv
 Convenience wrapper around \code{\link[=cv_density_lp]{cv_density_lp()}} for \code{ppp} objects. The domain
 is derived automatically from \code{Window(pp)}.
 }
+\examples{
+set.seed(1)
+pp <- spatstat.geom::ppp(runif(30), runif(30), window = spatstat.geom::owin())
+cv <- cv_density_lp_ppp(pp, h_grid = c(0.2, 0.4), m_grid = 0:1, N_quad = 100L)
+print(cv)
+
+}
 \seealso{
 \code{\link[=cv_density_lp]{cv_density_lp()}}, \code{\link[=density_lp_ppp]{density_lp_ppp()}}
 }

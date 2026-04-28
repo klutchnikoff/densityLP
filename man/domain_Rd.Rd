@@ -15,3 +15,7 @@ An \code{"domain_lp"} object.
 \description{
 Domain R^d (no constraint: neighbourhood = full \eqn{[-h, h]^d})
 }
+\examples{
+dom <- domain_Rd(2)
+print(dom)
+}

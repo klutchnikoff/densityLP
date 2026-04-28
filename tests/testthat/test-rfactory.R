@@ -79,3 +79,14 @@ test_that("rfactory: error if all pilot values are zero", {
     "zero"
   )
 })
+
+test_that("rfactory: max_iter guard triggers when acceptance rate is zero", {
+  # Supply M to skip the pilot phase, then is_in_domain rejects everything
+  r <- rfactory(
+    function(x, y) 1,
+    function(x, y) rep(FALSE, length(x)),
+    box_disc,
+    M = 1.0
+  )
+  expect_error(r(10L, max_iter = 5L), "iterations")
+})

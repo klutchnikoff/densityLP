@@ -11,7 +11,7 @@ density_lp_ppp(pp, h, m = 0L, N_quad = 500L, nx = 128L, ny = 128L)
 
 \item{h}{Bandwidth (scalar > 0).}
 
-\item{m}{Polynomial degree (integer >= 0, default 1).}
+\item{m}{Polynomial degree (integer >= 0, default 0).}
 
 \item{N_quad}{Number of quadrature points per target point (default 500).}
 
@@ -28,6 +28,13 @@ Convenience wrapper around \code{\link[=density_lp]{density_lp()}} for \code{ppp
 The evaluation grid and the domain are derived automatically from
 \code{Window(pp)}.  The result is a \code{spatstat.geom::im} pixel image, fully
 compatible with the spatstat plotting and analysis ecosystem.
+}
+\examples{
+set.seed(1)
+pp <- spatstat.geom::ppp(runif(50), runif(50), window = spatstat.geom::owin())
+fit <- density_lp_ppp(pp, h = 0.3, m = 1L, N_quad = 100L, nx = 20L, ny = 20L)
+print(fit)
+
 }
 \seealso{
 \code{\link[=density_lp]{density_lp()}}, \code{\link[=domain_from_owin]{domain_from_owin()}}

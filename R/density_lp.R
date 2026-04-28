@@ -52,6 +52,17 @@ new_density_lp <- function(
 #'
 #' @return An S3 object of class `"density_lp"`.
 #'
+#' @examples
+#' set.seed(1)
+#' X <- matrix(runif(50 * 2), ncol = 2)
+#' t_grid <- as.matrix(expand.grid(
+#'   x = seq(0.1, 0.9, length.out = 5),
+#'   y = seq(0.1, 0.9, length.out = 5)
+#' ))
+#' dom <- domain_Rd(2)
+#' fit <- density_lp(X, t_grid = t_grid, h = 0.3, m = 1L, domain = dom, N_quad = 100L)
+#' print(fit)
+#'
 #' @export
 density_lp <- function(X, t_grid, h, m = 0L, domain, N_quad = 500L) {
   check_X(X)
@@ -106,9 +117,9 @@ density_lp <- function(X, t_grid, h, m = 0L, domain, N_quad = 500L) {
     t_grid = t_grid,
     X = X,
     h = h,
-    m = m,
+    m = as.integer(m),
     domain = domain,
-    N_quad = N_quad,
+    N_quad = as.integer(N_quad),
     n_fail = n_fail,
     call = match.call()
   )

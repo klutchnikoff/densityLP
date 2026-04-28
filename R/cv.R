@@ -37,6 +37,13 @@ new_cv_density_lp <- function(m_hat, h_hat, scores, grids, call) {
 #'   - `$scores`: matrix `|m_grid| x |h_grid|` of CV scores,
 #'   - `$grids`: list containing `$m` and `$h` grids used.
 #' @seealso [density_lp()], [cv_density_lp_ppp()]
+#' @examples
+#' set.seed(1)
+#' X <- matrix(runif(30 * 2), ncol = 2)
+#' dom <- domain_Rd(2)
+#' cv <- cv_density_lp(X, h_grid = c(0.2, 0.4), m_grid = 0:1, domain = dom, N_quad = 100L)
+#' print(cv)
+#'
 #' @export
 cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
   check_X(X)
@@ -99,7 +106,7 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
     warning(sprintf(
       paste0(
         "%d/%d LOO evaluations failed for the selected parameters",
-        " (m = %d, h = %g).",
+        " (m = %d, h = %g): V(h) empty or Gram matrix singular.",
         " The CV score is unreliable: consider a larger h or a coarser grid."
       ),
       n_fail[idx[1L], idx[2L]],
@@ -111,7 +118,7 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
     warning(sprintf(
       paste0(
         "%d/%d LOO evaluations failed for the selected parameters",
-        " (m = %d, h = %g).",
+        " (m = %d, h = %g): V(h) empty or Gram matrix singular.",
         " Results should be interpreted with caution."
       ),
       n_fail[idx[1L], idx[2L]],
@@ -143,6 +150,12 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
 #' @param N_quad Number of quadrature points per evaluation (default 500).
 #' @return An S3 object of class `"cv_density_lp"` (see [cv_density_lp()]).
 #' @seealso [cv_density_lp()], [density_lp_ppp()]
+#' @examples
+#' set.seed(1)
+#' pp <- spatstat.geom::ppp(runif(30), runif(30), window = spatstat.geom::owin())
+#' cv <- cv_density_lp_ppp(pp, h_grid = c(0.2, 0.4), m_grid = 0:1, N_quad = 100L)
+#' print(cv)
+#'
 #' @importFrom spatstat.geom Window
 #' @export
 cv_density_lp_ppp <- function(pp, h_grid, m_grid = 0:3, N_quad = 500L) {

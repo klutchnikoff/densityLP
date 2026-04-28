@@ -18,3 +18,8 @@ sampler uses \code{\link[spatstat.random:runifpoint]{spatstat.random::runifpoint
 \eqn{V(h) = \mathcal{D} \cap [-h, h]^2}, giving exact area and unbiased
 Monte Carlo weights.
 }
+\examples{
+win <- spatstat.geom::owin(c(0, 1), c(0, 1))
+dom <- domain_from_owin(win)
+print(dom)
+}
