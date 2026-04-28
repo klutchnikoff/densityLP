@@ -1,5 +1,20 @@
 # LOO cross-validation for bandwidth and degree selection -----------------------
 
+#' Internal constructor for cv_density_lp objects
+#' @keywords internal
+new_cv_density_lp <- function(m_hat, h_hat, scores, grids, call) {
+  structure(
+    list(
+      m_hat = m_hat,
+      h_hat = h_hat,
+      scores = scores,
+      grids = grids,
+      call = call
+    ),
+    class = "cv_density_lp"
+  )
+}
+
 #' LOO cross-validation for the local polynomial density estimator
 #'
 #' For each pair \eqn{(m, h)} in the grid, computes the leave-one-out
@@ -20,7 +35,7 @@
 #' @return An S3 object of class `"cv_density_lp"` containing:
 #'   - `$m_hat`, `$h_hat`: selected degree and bandwidth,
 #'   - `$scores`: matrix `|m_grid| x |h_grid|` of CV scores,
-#'   - `$m_grid`, `$h_grid`: the grids used.
+#'   - `$grids`: list containing `$m` and `$h` grids used.
 #' @seealso [density_lp()], [cv_density_lp_ppp()]
 #' @export
 cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
@@ -105,16 +120,15 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
       h_grid[idx[2L]]
     ))
   }
-  structure(
-    list(
-      m_hat = m_grid[idx[1L]],
-      h_hat = h_grid[idx[2L]],
-      scores = scores,
-      m_grid = m_grid,
-      h_grid = h_grid,
-      call = match.call()
+  new_cv_density_lp(
+    m_hat = m_grid[idx[1L]],
+    h_hat = h_grid[idx[2L]],
+    scores = scores,
+    grids = list(
+      m = m_grid,
+      h = h_grid
     ),
-    class = "cv_density_lp"
+    call = match.call()
   )
 }
 
@@ -142,23 +156,4 @@ cv_density_lp_ppp <- function(pp, h_grid, m_grid = 0:3, N_quad = 500L) {
     domain = dom,
     N_quad = N_quad
   )
-}
-
-#' Print a cv_density_lp object
-#' @param x A `"cv_density_lp"` object.
-#' @param ... Ignored.
-#' @return `x` invisibly.
-#' @export
-print.cv_density_lp <- function(x, ...) {
-  score <- x$scores[paste0("m=", x$m_hat), as.character(round(x$h_hat, 6L))]
-  cat("LOO cross-validation -- local polynomial density\n")
-  cat(sprintf("  Selected m : %d\n", x$m_hat))
-  cat(sprintf("  Selected h : %.6g\n", x$h_hat))
-  cat(sprintf("  CV score   : %.5g\n", score))
-  cat(sprintf(
-    "  Grid       : %d degree(s) x %d bandwidth(s)\n",
-    length(x$m_grid),
-    length(x$h_grid)
-  ))
-  invisible(x)
 }

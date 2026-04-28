@@ -4,7 +4,11 @@
 \alias{plot.density_lp}
 \title{Plot a density_lp object}
 \usage{
-\method{plot}{density_lp}(x, main = paste0("densityLP  (h = ", x$h, ", m = ", x$m, ")"), ...)
+\method{plot}{density_lp}(
+  x,
+  main = paste0("densityLP  (h = ", x$params$h, ", m = ", x$params$m, ")"),
+  ...
+)
 }
 \arguments{
 \item{x}{A \code{"density_lp"} object.}

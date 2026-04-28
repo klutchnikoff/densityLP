@@ -156,8 +156,8 @@ test_that("density_lp: returns 'density_lp' object with correct fields", {
   expect_s3_class(res, "density_lp")
   expect_length(res$estimate, 2L)
   expect_equal(nrow(res$t_grid), 2L)
-  expect_equal(res$h, 0.4)
-  expect_equal(res$m, 1L)
+  expect_equal(res$params$h, 0.4)
+  expect_equal(res$params$m, 1L)
 })
 
 test_that("density_lp: estimates are non-negative", {

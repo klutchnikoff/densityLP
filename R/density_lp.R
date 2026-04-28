@@ -1,5 +1,43 @@
 # Grid estimator (exported) -----------------------------------------------------
 
+#' Internal constructor for density_lp objects
+#' @keywords internal
+new_density_lp <- function(
+  estimate,
+  variance,
+  t_grid,
+  X,
+  h,
+  m,
+  domain,
+  N_quad,
+  n_fail,
+  call
+) {
+  structure(
+    list(
+      estimate = estimate,
+      variance = variance,
+      t_grid = t_grid,
+      X = X,
+      params = list(
+        h = h,
+        m = m,
+        domain = domain,
+        N_quad = N_quad
+      ),
+      stats = list(
+        n_fail = n_fail,
+        n_obs = nrow(X),
+        p = nrow(t_grid),
+        d = ncol(X)
+      ),
+      call = call
+    ),
+    class = "density_lp"
+  )
+}
+
 #' Local polynomial density estimation on a grid of target points
 #'
 #' @param X Numeric matrix `n x d` of observations. Must be a matrix; no
@@ -12,11 +50,7 @@
 #' @param N_quad Number of Monte Carlo quadrature points per target point
 #'   (default: 500).
 #'
-#' @return An S3 object of class `"density_lp"` containing:
-#'   - `$estimate`: numeric vector of length `p` (estimated values),
-#'   - `$variance`: numeric vector of length `p` (variance estimates),
-#'   - `$t_grid`:   the matrix of target points,
-#'   - `$h`, `$m`, `$domain`, `$N_quad`: parameters used.
+#' @return An S3 object of class `"density_lp"`.
 #'
 #' @export
 density_lp <- function(X, t_grid, h, m = 0L, domain, N_quad = 500L) {
@@ -66,17 +100,16 @@ density_lp <- function(X, t_grid, h, m = 0L, domain, N_quad = 500L) {
     )
   }
 
-  structure(
-    list(
-      estimate = estimate,
-      variance = variance,
-      t_grid = t_grid,
-      h = h,
-      m = m,
-      domain = domain,
-      N_quad = N_quad,
-      call = match.call()
-    ),
-    class = "density_lp"
+  new_density_lp(
+    estimate = estimate,
+    variance = variance,
+    t_grid = t_grid,
+    X = X,
+    h = h,
+    m = m,
+    domain = domain,
+    N_quad = N_quad,
+    n_fail = n_fail,
+    call = match.call()
   )
 }

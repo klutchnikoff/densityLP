@@ -22,7 +22,7 @@ An S3 object of class \code{"cv_density_lp"} containing:
 \itemize{
 \item \verb{$m_hat}, \verb{$h_hat}: selected degree and bandwidth,
 \item \verb{$scores}: matrix \verb{|m_grid| x |h_grid|} of CV scores,
-\item \verb{$m_grid}, \verb{$h_grid}: the grids used.
+\item \verb{$grids}: list containing \verb{$m} and \verb{$h} grids used.
 }
 }
 \description{

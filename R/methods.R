@@ -7,12 +7,19 @@
 #' @export
 print.density_lp_ppp <- function(x, ...) {
   cat("Local polynomial density estimate (spatstat)\n")
-  cat(sprintf("  h      : %g\n", x$h))
-  cat(sprintf("  m      : %d\n", x$m))
-  cat(sprintf("  N_quad : %d\n", x$N_quad))
+  cat(sprintf("  Points : %d\n", x$stats$n_obs))
+  cat(sprintf("  h      : %g\n", x$params$h))
+  cat(sprintf("  m      : %d\n", x$params$m))
+  cat(sprintf("  N_quad : %d\n", x$params$N_quad))
   cat(sprintf("  Grid   : %d x %d pixels\n", length(x$xcol), length(x$yrow)))
   rng <- range(x$v, na.rm = TRUE)
   cat(sprintf("  Range  : [%.5g, %.5g]\n", rng[1L], rng[2L]))
+  if (!is.null(x$stats$n_fail) && x$stats$n_fail > 0L) {
+    cat(sprintf(
+      "  Note   : %d failure(s) during calculation\n",
+      x$stats$n_fail
+    ))
+  }
   invisible(x)
 }
 
@@ -35,18 +42,51 @@ plot.density_lp_ppp <- function(x, ...) {
 #' @export
 print.density_lp <- function(x, ...) {
   cat("Local polynomial density estimate\n")
-  cat(sprintf("  Domain : %s\n", x$domain$label))
-  cat(sprintf("  d      : %d\n", x$domain$d))
-  cat(sprintf("  h      : %g\n", x$h))
-  cat(sprintf("  m      : %d\n", x$m))
-  cat(sprintf("  N_quad : %d\n", x$N_quad))
-  cat(sprintf("  Points : %d\n", nrow(x$t_grid)))
-  cat(sprintf(
-    "  Range  : [%.5g, %.5g]\n",
-    min(x$estimate, na.rm = TRUE),
-    max(x$estimate, na.rm = TRUE)
-  ))
+  cat(sprintf("  Points : %d\n", x$stats$p))
+  cat(sprintf("  h      : %g\n", x$params$h))
+  cat(sprintf("  m      : %d\n", x$params$m))
+  rng <- range(x$estimate, na.rm = TRUE)
+  cat(sprintf("  Range  : [%.5g, %.5g]\n", rng[1L], rng[2L]))
+  if (x$stats$n_fail > 0L) {
+    cat(sprintf(
+      "  Note   : %d failure(s) during calculation\n",
+      x$stats$n_fail
+    ))
+  }
   invisible(x)
+}
+
+#' Summary of a density_lp object
+#' @param object A `"density_lp"` object.
+#' @param ... Ignored.
+#' @return `object` invisibly.
+#' @export
+summary.density_lp <- function(object, ...) {
+  cat("Local Polynomial Density Estimation Summary\n")
+  cat("-------------------------------------------\n")
+  cat(sprintf(
+    "Call         : %s\n",
+    paste(deparse(object$call), collapse = "\n")
+  ))
+  cat(sprintf(
+    "Domain       : %s (d = %d)\n",
+    object$params$domain$label,
+    object$stats$d
+  ))
+  cat(sprintf("Observations : n = %d\n", object$stats$n_obs))
+  cat(sprintf(
+    "Grid points  : p = %d (%d success, %d failure)\n",
+    object$stats$p,
+    object$stats$p - object$stats$n_fail,
+    object$stats$n_fail
+  ))
+  cat("\nParameters:\n")
+  cat(sprintf("  Bandwidth (h) : %g\n", object$params$h))
+  cat(sprintf("  Degree (m)    : %d\n", object$params$m))
+  cat(sprintf("  Quadrature    : %d MC points\n", object$params$N_quad))
+  cat("\nResults (estimate):\n")
+  print(summary(object$estimate))
+  invisible(object)
 }
 
 #' Plot a density_lp object
@@ -59,10 +99,10 @@ print.density_lp <- function(x, ...) {
 #' @export
 plot.density_lp <- function(
   x,
-  main = paste0("densityLP  (h = ", x$h, ", m = ", x$m, ")"),
+  main = paste0("densityLP  (h = ", x$params$h, ", m = ", x$params$m, ")"),
   ...
 ) {
-  d <- x$domain$d
+  d <- x$stats$d
   if (d == 1L) {
     plot(
       x$t_grid[, 1L],
@@ -96,5 +136,26 @@ plot.density_lp <- function(
   } else {
     warning("plot.density_lp: no graphical method for d = ", d, ".")
   }
+  invisible(x)
+}
+
+# S3 methods for "cv_density_lp" ------------------------------------------------
+
+#' Print a cv_density_lp object
+#' @param x A \code{"cv_density_lp"} object.
+#' @param ... Ignored.
+#' @return \code{x} invisibly.
+#' @export
+print.cv_density_lp <- function(x, ...) {
+  score <- x$scores[paste0("m=", x$m_hat), as.character(round(x$h_hat, 6L))]
+  cat("LOO cross-validation -- local polynomial density\n")
+  cat(sprintf("  Selected m : %d\n", x$m_hat))
+  cat(sprintf("  Selected h : %.6g\n", x$h_hat))
+  cat(sprintf("  CV score   : %.5g\n", score))
+  cat(sprintf(
+    "  Grid       : %d degree(s) x %d bandwidth(s)\n",
+    length(x$grids$m),
+    length(x$grids$h)
+  ))
   invisible(x)
 }
