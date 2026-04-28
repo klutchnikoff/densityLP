@@ -6,7 +6,7 @@
 \alias{densityLP-package}
 \title{densityLP: Local Polynomial Density Estimation on Complicated Domains}
 \description{
-Nonparametric local polynomial estimator for multivariate density functions on known domains of arbitrary dimension, including complicated domains with sharp concavities, holes, and local pinches such as polynomial sectors. Implements the procedure of Bertin, Klutchnikoff and Ouimet (Bernoulli, forthcoming).
+Nonparametric local polynomial estimator for multivariate density functions on known domains of arbitrary dimension, including complicated domains with sharp concavities, holes, and local pinches such as polynomial sectors. Implements the procedure of Bertin, Klutchnikoff and Ouimet (Bernoulli, 2025, \doi{10.3150/24-BEJ1802}).
 }
 \author{
 \strong{Maintainer}: Nicolas Klutchnikoff \email{nicolas.klutchnikoff@univ-rennes2.fr} (\href{https://orcid.org/0000-0001-9349-0771}{ORCID})
