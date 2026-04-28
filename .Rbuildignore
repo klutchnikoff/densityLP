@@ -16,3 +16,4 @@
 ^\.positai$
 ^README\.Rmd$
 ^README\.html$
+^CITATION\.cff$
