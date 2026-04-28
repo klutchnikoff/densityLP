@@ -1,0 +1,21 @@
+# Encoding: UTF-8
+
+bibentry("Article",
+  title        = "A new adaptive local polynomial density estimation procedure on complicated domains",
+  author       = c(
+    person("Karine", "Bertin"),
+    person("Nicolas", "Klutchnikoff"),
+    person("Frédéric", "Ouimet")
+  ),
+  year         = "2025",
+  journal      = "Bernoulli",
+  volume       = "31",
+  number       = "3",
+  pages        = "2201--2225",
+  doi          = "10.3150/24-BEJ1802",
+  textVersion  = paste(
+    "Bertin, K., Klutchnikoff, N., & Ouimet, F. (2025).",
+    "A new adaptive local polynomial density estimation procedure on complicated domains.",
+    "Bernoulli, 31(3), 2201-2225. https://doi.org/10.3150/24-BEJ1802"
+  )
+)
