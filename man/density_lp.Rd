@@ -23,13 +23,7 @@ implicit conversion from data frames or tibbles is performed.}
 (default: 500).}
 }
 \value{
-An S3 object of class \code{"density_lp"} containing:
-\itemize{
-\item \verb{$estimate}: numeric vector of length \code{p} (estimated values),
-\item \verb{$variance}: numeric vector of length \code{p} (variance estimates),
-\item \verb{$t_grid}:   the matrix of target points,
-\item \verb{$h}, \verb{$m}, \verb{$domain}, \verb{$N_quad}: parameters used.
-}
+An S3 object of class \code{"density_lp"}.
 }
 \description{
 Local polynomial density estimation on a grid of target points

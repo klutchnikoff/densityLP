@@ -8,8 +8,8 @@ test_that("density_lp_ppp: returns a density_lp_ppp object inheriting from im", 
   fit <- density_lp_ppp(pp, h = 0.5, m = 0L, N_quad = 100L, nx = 32L, ny = 32L)
   expect_s3_class(fit, "density_lp_ppp")
   expect_s3_class(fit, "im")
-  expect_equal(fit$h, 0.5)
-  expect_equal(fit$m, 0L)
+  expect_equal(fit$params$h, 0.5)
+  expect_equal(fit$params$m, 0L)
 })
 
 test_that("print.density_lp_ppp: returns x invisibly and produces output", {

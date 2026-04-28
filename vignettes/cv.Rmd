@@ -61,16 +61,16 @@ scores_plot[!is.finite(scores_plot)] <- NA
 
 ylim <- range(scores_plot, na.rm = TRUE)
 
-plot(cv_sq$h_grid, scores_plot["m=0", ],
+plot(cv_sq$grids$h, scores_plot["m=0", ],
   type = "b", pch = 16, lwd = 2, col = pal["m=0"],
   xlab = "h", ylab = "CV score  (lower = better)",
   main = "LOO CV — unit square, f ≡ 1",
   ylim = ylim
 )
-lines(cv_sq$h_grid, scores_plot["m=1", ],
+lines(cv_sq$grids$h, scores_plot["m=1", ],
   type = "b", pch = 16, lwd = 2, col = pal["m=1"]
 )
-lines(cv_sq$h_grid, scores_plot["m=2", ],
+lines(cv_sq$grids$h, scores_plot["m=2", ],
   type = "b", pch = 16, lwd = 2, col = pal["m=2"]
 )
 
@@ -140,16 +140,16 @@ scores_bt[!is.finite(scores_bt)] <- NA
 
 ylim_bt <- range(scores_bt, na.rm = TRUE)
 
-plot(cv_bt$h_grid, scores_bt["m=0", ],
+plot(cv_bt$grids$h, scores_bt["m=0", ],
   type = "b", pch = 16, lwd = 2, col = pal["m=0"],
   xlab = "h", ylab = "CV score  (lower = better)",
   main = "LOO CV — unit square, f = Beta(2,5) × Beta(2,5)",
   ylim = ylim_bt
 )
-lines(cv_bt$h_grid, scores_bt["m=1", ],
+lines(cv_bt$grids$h, scores_bt["m=1", ],
   type = "b", pch = 16, lwd = 2, col = pal["m=1"]
 )
-lines(cv_bt$h_grid, scores_bt["m=2", ],
+lines(cv_bt$grids$h, scores_bt["m=2", ],
   type = "b", pch = 16, lwd = 2, col = pal["m=2"]
 )
 

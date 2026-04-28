@@ -45,12 +45,12 @@ test_that("cv_density_lp: score matrix has correct dimensions", {
 
 test_that("cv_density_lp: m_hat is in m_grid", {
   cv <- make_square_cv()
-  expect_true(cv$m_hat %in% cv$m_grid)
+  expect_true(cv$m_hat %in% cv$grids$m)
 })
 
 test_that("cv_density_lp: h_hat is in h_grid", {
   cv <- make_square_cv()
-  expect_true(cv$h_hat %in% cv$h_grid)
+  expect_true(cv$h_hat %in% cv$grids$h)
 })
 
 test_that("cv_density_lp: selected score is the minimum finite score", {
@@ -72,8 +72,8 @@ test_that("cv_density_lp: grids stored in output match inputs", {
     domain = domain_from_indicator(is_sq),
     N_quad = 100L
   )
-  expect_equal(cv$h_grid, h_grid)
-  expect_equal(cv$m_grid, m_grid)
+  expect_equal(cv$grids$h, h_grid)
+  expect_equal(cv$grids$m, m_grid)
 })
 
 test_that("cv_density_lp: error if X is not a matrix", {

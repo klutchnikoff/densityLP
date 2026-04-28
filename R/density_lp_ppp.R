@@ -1,5 +1,21 @@
 # spatstat wrapper ---------------------------------------------------------------
 
+#' Internal constructor for density_lp_ppp objects
+#' @keywords internal
+new_density_lp_ppp <- function(im_obj, params, stats, call) {
+  structure(
+    c(
+      unclass(im_obj),
+      list(
+        params = params,
+        stats = stats,
+        call = call
+      )
+    ),
+    class = c("density_lp_ppp", "im")
+  )
+}
+
 #' Local polynomial density estimation for a spatial point pattern
 #'
 #' Convenience wrapper around [density_lp()] for `ppp` objects (spatstat).
@@ -13,8 +29,8 @@
 #' @param N_quad Number of quadrature points per target point (default 500).
 #' @param nx Number of pixel columns (default 128).
 #' @param ny Number of pixel rows (default 128).
-#' @return An `im` object (spatstat.geom). Pixels outside `Window(pp)` are
-#'   `NA`.
+#' @return An S3 object of class `"density_lp_ppp"`, which also inherits from
+#'   `spatstat.geom::im`. Pixels outside `Window(pp)` are `NA`.
 #' @seealso [density_lp()], [domain_from_owin()]
 #' @importFrom spatstat.geom Window inside.owin im unitname
 #' @export
@@ -68,11 +84,15 @@ density_lp_ppp <- function(pp, h, m = 0L, N_quad = 500L, nx = 128L, ny = 128L) {
     unitname = spatstat.geom::unitname(pp)
   )
 
-  structure(
-    c(
-      unclass(im_obj),
-      list(h = h, m = as.integer(m), N_quad = as.integer(N_quad), call = mc)
+  new_density_lp_ppp(
+    im_obj = im_obj,
+    params = list(
+      h = h,
+      m = as.integer(m),
+      N_quad = as.integer(N_quad),
+      domain = dom
     ),
-    class = c("density_lp_ppp", "im")
+    stats = fit$stats,
+    call = mc
   )
 }

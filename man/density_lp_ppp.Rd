@@ -20,8 +20,8 @@ density_lp_ppp(pp, h, m = 0L, N_quad = 500L, nx = 128L, ny = 128L)
 \item{ny}{Number of pixel rows (default 128).}
 }
 \value{
-An \code{im} object (spatstat.geom). Pixels outside \code{Window(pp)} are
-\code{NA}.
+An S3 object of class \code{"density_lp_ppp"}, which also inherits from
+\code{spatstat.geom::im}. Pixels outside \code{Window(pp)} are \code{NA}.
 }
 \description{
 Convenience wrapper around \code{\link[=density_lp]{density_lp()}} for \code{ppp} objects (spatstat).
