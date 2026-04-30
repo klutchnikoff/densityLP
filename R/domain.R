@@ -1,9 +1,23 @@
 # Domain objects "domain_lp" ----------------------------------------------------
 
 #' @keywords internal
-new_domain_lp <- function(d, sampler_factory, label, call) {
+new_domain_lp <- function(
+  d,
+  sampler_factory,
+  is_in_domain,
+  label,
+  call,
+  bbox = NULL
+) {
   structure(
-    list(d = d, sampler_factory = sampler_factory, label = label, call = call),
+    list(
+      d = d,
+      sampler_factory = sampler_factory,
+      is_in_domain = is_in_domain,
+      label = label,
+      call = call,
+      bbox = bbox
+    ),
     class = "domain_lp"
   )
 }
@@ -32,10 +46,11 @@ domain_Rd <- function(d) {
   stopifnot(is.numeric(d), length(d) == 1L, is.finite(d), d >= 1, d == floor(d))
   d <- as.integer(d)
 
-  is_in <- function(...) rep(TRUE, length(..1))
+  is_in_domain <- function(...) rep(TRUE, length(..1))
   new_domain_lp(
     d,
-    function() sampler_rejection(is_in),
+    sampler_factory = function() sampler_rejection(is_in_domain),
+    is_in_domain = is_in_domain,
     label = "R^d",
     call = match.call()
   )
@@ -48,8 +63,8 @@ domain_Rd <- function(d) {
 #'   `d` is inferred from `length(formals(is_in_domain))`.
 #' @return An `"domain_lp"` object.
 #' @examples
-#' is_in <- function(x, y) x^2 + y^2 <= 1
-#' dom <- domain_from_indicator(is_in)
+#' is_in_domain <- function(x, y) x^2 + y^2 <= 1
+#' dom <- domain_from_indicator(is_in_domain)
 #' print(dom)
 #' @export
 domain_from_indicator <- function(is_in_domain) {
@@ -58,7 +73,8 @@ domain_from_indicator <- function(is_in_domain) {
   stopifnot(d >= 1L)
   new_domain_lp(
     d,
-    function() sampler_rejection(is_in_domain),
+    sampler_factory = function() sampler_rejection(is_in_domain),
+    is_in_domain = is_in_domain,
     label = "analytic domain",
     call = match.call()
   )
@@ -80,10 +96,13 @@ domain_from_indicator <- function(is_in_domain) {
 #' @export
 domain_from_owin <- function(win) {
   stopifnot(inherits(win, "owin"))
+  bbox <- matrix(c(win$xrange, win$yrange), nrow = 2L, byrow = FALSE)
   new_domain_lp(
     2L,
-    function() sampler_owin(win),
+    sampler_factory = function() sampler_owin(win),
+    is_in_domain = function(x, y) spatstat.geom::inside.owin(x, y, win),
     label = paste0("spatstat owin (", win$type, ")"),
-    call = match.call()
+    call = match.call(),
+    bbox = bbox
   )
 }
