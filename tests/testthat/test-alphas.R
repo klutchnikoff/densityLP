@@ -30,7 +30,7 @@ test_that("build_alphas : ordre correct (degre croissant, puis lex)", {
     expect_equal(
       bloc,
       bloc[
-        do.call(order, lapply(seq_len(ncol(bloc)), function(j) bloc[, j])),
+        call_on_columns(order, bloc),
         ,
         drop = FALSE
       ]
