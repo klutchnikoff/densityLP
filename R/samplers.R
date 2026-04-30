@@ -26,7 +26,7 @@ sampler_rejection <- function(is_in_domain) {
     d <- length(t)
     U <- matrix(runif(N_quad * d, -h, h), N_quad, d)
     X <- U + t[col(U)]
-    ok <- do.call(is_in_domain, lapply(seq_len(d), function(j) X[, j]))
+    ok <- call_on_columns(is_in_domain, X)
     pts <- t(U[ok, , drop = FALSE])
     if (ncol(pts) == 0L) {
       stop(

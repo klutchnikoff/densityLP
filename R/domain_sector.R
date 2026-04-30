@@ -10,11 +10,14 @@
 #' @export
 domain_sector <- function(k) {
   stopifnot(is.numeric(k), length(k) == 1L, is.finite(k), k > 0)
+  bbox <- matrix(c(0, 1, 0, 1), nrow = 2L, byrow = FALSE)
   new_domain_lp(
     2L,
-    function() sampler_sector(k),
+    sampler_factory = function() sampler_sector(k),
+    is_in_domain = function(x, y) (x >= 0) & (x <= 1) & (y >= 0) & (y <= x^k),
     label = paste0("polynomial sector D_", k),
-    call = match.call()
+    call = match.call(),
+    bbox = bbox
   )
 }
 
@@ -61,10 +64,11 @@ sampler_sector <- function(k) {
     # Rejection sampling (efficient: domain is monotone in x)
     y_lo <- max(0, ty - h)
     y_hi <- ty + h
-    accepted <- matrix(NA_real_, 2L, 0L)
+    chunks <- list()
+    n_accepted <- 0L
     max_iter <- 1000L
     iter <- 0L
-    while (ncol(accepted) < N_quad) {
+    while (n_accepted < N_quad) {
       iter <- iter + 1L
       if (iter > max_iter) {
         stop(sprintf(
@@ -80,12 +84,16 @@ sampler_sector <- function(k) {
           h
         ))
       }
-      need <- ceiling(2 * (N_quad - ncol(accepted)))
+      need <- ceiling(2 * (N_quad - n_accepted))
       x <- runif(need, x_lo, x_hi)
       y <- runif(need, y_lo, y_hi)
       ok <- (y >= 0) & (y <= x^k)
-      accepted <- cbind(accepted, rbind(x[ok] - tx, y[ok] - ty))
+      if (any(ok)) {
+        chunks[[length(chunks) + 1L]] <- rbind(x[ok] - tx, y[ok] - ty)
+        n_accepted <- n_accepted + sum(ok)
+      }
     }
+    accepted <- do.call(cbind, chunks)
     list(
       points = accepted[, seq_len(N_quad), drop = FALSE],
       n_total = round(N_quad * (2 * h)^2 / vol)

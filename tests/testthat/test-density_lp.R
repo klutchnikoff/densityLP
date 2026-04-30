@@ -103,22 +103,40 @@ test_that("plot.density_lp: returns x invisibly for d=2", {
     domain = domain_Rd(2L),
     N_quad = 200L
   )
-  expect_identical(withVisible(plot(res))$visible, FALSE)
+  # manual grid doesn't have grid_info, defaults to scatter with warning
+  expect_warning(
+    expect_identical(withVisible(plot(res))$visible, FALSE),
+    "Using scatter plot"
+  )
 })
 
 # ── Input validation ───────────────────────────────────────────────────────────
 
-test_that("density_lp: error if X is not a matrix", {
+test_that("density_lp: allows data.frame and error if input is a list", {
+  X_df <- as.data.frame(matrix(runif(20), 10, 2))
+  dom <- domain_Rd(2L)
+  expect_no_error(
+    density_lp(X_df, t_grid = matrix(0.5, 1, 2), h = 0.3, m = 1, domain = dom)
+  )
   expect_error(
     density_lp(
-      as.data.frame(matrix(0, 10, 2)),
-      matrix(0.5, 1, 2),
+      as.list(X_df),
+      t_grid = matrix(0.5, 1, 2),
       h = 0.3,
       m = 1,
-      domain = domain_Rd(2L)
-    ),
-    "matrix"
+      domain = dom
+    )
   )
+})
+
+test_that("density_lp: automatic grid generation in 2D returns im object", {
+  set.seed(1L)
+  X <- matrix(runif(40), 20, 2)
+  dom <- domain_Rd(2L)
+  res <- density_lp(X, h = 0.3, m = 0L, domain = dom, nx = 10, ny = 10)
+  expect_s3_class(res, "im")
+  expect_s3_class(res, "density_lp")
+  expect_equal(dim(res$v), c(10, 10))
 })
 
 test_that("density_lp: error on dimension mismatch between X and t_grid", {
@@ -132,10 +150,9 @@ test_that("density_lp: error on dimension mismatch between X and t_grid", {
 
 test_that("density_lp: error on domain dimension mismatch", {
   X <- matrix(runif(20), 10, 2)
-  t_grid <- matrix(0.5, 1, 2)
   expect_error(
-    density_lp(X, t_grid, h = 0.3, m = 1, domain = domain_Rd(3L)),
-    "dimension"
+    density_lp(X, h = 0.3, m = 1, domain = domain_Rd(3L)),
+    "Dimension mismatch"
   )
 })
 

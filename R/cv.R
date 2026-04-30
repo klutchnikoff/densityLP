@@ -27,34 +27,75 @@ new_cv_density_lp <- function(m_hat, h_hat, scores, grids, call) {
 #' where \eqn{\|H_0^{(X_i)}\|^2 = (B_{X_i}^{-1})_{11}} is the self-influence
 #' scalar returned as a byproduct of the C++ pipeline.
 #'
-#' @param X Numeric matrix `n x d` of observations.
+#' @param x Observations. Can be a numeric \code{matrix}, a \code{spatstat.geom::ppp}
+#'   object, or a \code{pp_lp} object.
 #' @param h_grid Numeric vector of bandwidth values (all > 0).
-#' @param m_grid Integer vector of polynomial degrees (default `0:3`).
-#' @param domain An `"domain_lp"` object.
-#' @param N_quad Number of quadrature points per evaluation (default 500).
-#' @return An S3 object of class `"cv_density_lp"` containing:
-#'   - `$m_hat`, `$h_hat`: selected degree and bandwidth,
-#'   - `$scores`: matrix `|m_grid| x |h_grid|` of CV scores,
-#'   - `$grids`: list containing `$m` and `$h` grids used.
-#' @seealso [density_lp()], [cv_density_lp_ppp()]
+#' @param m_grid Integer vector of polynomial degrees (default \code{0:3}).
+#' @param N_quad Number of quadrature (Monte Carlo) points used to approximate
+#'   the normalising integral (default 500).
+#' @param ... Additional arguments passed to methods.
+#'
+#' @return An S3 object of class \code{"cv_density_lp"} with fields:
+#'   \describe{
+#'     \item{m_hat}{Selected polynomial degree.}
+#'     \item{h_hat}{Selected bandwidth.}
+#'     \item{scores}{Matrix of CV scores (rows = degrees, columns = bandwidths).}
+#'     \item{grids}{List with \code{$m} and \code{$h} grids used.}
+#'   }
+#' @seealso [density_lp()]
 #' @examples
 #' set.seed(1)
 #' X <- matrix(runif(30 * 2), ncol = 2)
-#' dom <- domain_Rd(2)
+#' dom <- domain_Rd(2L)
 #' cv <- cv_density_lp(X, h_grid = c(0.2, 0.4), m_grid = 0:1, domain = dom, N_quad = 100L)
 #' print(cv)
-#'
+#' summary(cv)
 #' @export
-cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
-  check_X(X)
-  check_domain(domain, ncol(X))
+cv_density_lp <- function(x, h_grid, m_grid = 0:3, N_quad = 500L, ...) {
+  UseMethod("cv_density_lp")
+}
+
+#' @export
+cv_density_lp.matrix <- function(
+  x,
+  h_grid,
+  m_grid = 0:3,
+  N_quad = 500L,
+  domain,
+  ...
+) {
+  pp <- pp_lp(x, domain)
+  cv_density_lp(pp, h_grid = h_grid, m_grid = m_grid, N_quad = N_quad, ...)
+}
+
+#' @export
+cv_density_lp.data.frame <- function(
+  x,
+  h_grid,
+  m_grid = 0:3,
+  N_quad = 500L,
+  domain,
+  ...
+) {
+  pp <- pp_lp(as.matrix(x), domain)
+  cv_density_lp(pp, h_grid = h_grid, m_grid = m_grid, N_quad = N_quad, ...)
+}
+
+#' @export
+cv_density_lp.ppp <- function(x, h_grid, m_grid = 0:3, N_quad = 500L, ...) {
+  pp <- as_pp_lp(x)
+  cv_density_lp(pp, h_grid = h_grid, m_grid = m_grid, N_quad = N_quad, ...)
+}
+
+#' @export
+cv_density_lp.pp_lp <- function(x, h_grid, m_grid = 0:3, N_quad = 500L, ...) {
   check_h_grid(h_grid)
   check_m_grid(m_grid)
   check_N_quad(N_quad)
 
   m_grid <- as.integer(m_grid)
-  n <- nrow(X)
-  d <- ncol(X)
+  n <- x$n
+  d <- x$d
 
   scores <- matrix(
     NA_real_,
@@ -64,9 +105,8 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
   )
   n_fail <- matrix(0L, length(m_grid), length(h_grid))
 
-  sampler <- domain$sampler_factory()
-  # We transpose X once for C++ (d x n)
-  Xt <- t(X)
+  sampler <- x$domain$sampler_factory()
+  Xt <- t(x$X)
 
   for (ih in seq_along(h_grid)) {
     h <- h_grid[ih]
@@ -75,7 +115,7 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
     s_list <- vector("list", n)
     n_total_vec <- integer(n)
     for (i in seq_len(n)) {
-      t_i <- X[i, , drop = TRUE]
+      t_i <- x$X[i, , drop = TRUE]
       s <- tryCatch(sampler(N_quad, t_i, h), error = function(e) NULL)
       if (is.null(s)) {
         s_list[[i]] <- matrix(0, d, 0)
@@ -90,10 +130,8 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
       m <- m_grid[im]
       alphas <- build_alphas(m, d)
 
-      # Call the optimized C++ backend for the full observation loop
       log_loo <- cv_lp_fixed_h_m_cpp(Xt, s_list, n_total_vec, h, alphas)
 
-      # Track failures (infinite scores)
       n_fail[im, ih] <- sum(!is.finite(log_loo))
       scores[im, ih] <- -mean(log_loo)
     }
@@ -141,32 +179,26 @@ cv_density_lp <- function(X, h_grid, m_grid = 0:3, domain, N_quad = 500L) {
 
 #' LOO cross-validation for a spatial point pattern
 #'
-#' Convenience wrapper around [cv_density_lp()] for `ppp` objects. The domain
-#' is derived automatically from `Window(pp)`.
+#' This function is now an alias for [cv_density_lp()] when called on a \code{ppp}
+#' object.
 #'
 #' @param pp A `ppp` object (spatstat.geom).
 #' @param h_grid Numeric vector of bandwidth values (all > 0).
 #' @param m_grid Integer vector of polynomial degrees (default `0:3`).
 #' @param N_quad Number of quadrature points per evaluation (default 500).
-#' @return An S3 object of class `"cv_density_lp"` (see [cv_density_lp()]).
-#' @seealso [cv_density_lp()], [density_lp_ppp()]
+#' @param ... Additional arguments passed to [cv_density_lp()].
+#' @return An S3 object of class \code{"cv_density_lp"} (see [cv_density_lp()]).
 #' @examples
+#' \donttest{
 #' set.seed(1)
-#' pp <- spatstat.geom::ppp(runif(30), runif(30), window = spatstat.geom::owin())
+#' pp <- spatstat.geom::ppp(runif(50), runif(50), window = spatstat.geom::owin())
 #' cv <- cv_density_lp_ppp(pp, h_grid = c(0.2, 0.4), m_grid = 0:1, N_quad = 100L)
 #' print(cv)
-#'
-#' @importFrom spatstat.geom Window
+#' }
 #' @export
-cv_density_lp_ppp <- function(pp, h_grid, m_grid = 0:3, N_quad = 500L) {
-  stopifnot(inherits(pp, "ppp"))
-  X <- cbind(pp$x, pp$y)
-  dom <- domain_from_owin(spatstat.geom::Window(pp))
-  cv_density_lp(
-    X,
-    h_grid = h_grid,
-    m_grid = m_grid,
-    domain = dom,
-    N_quad = N_quad
-  )
+cv_density_lp_ppp <- function(pp, h_grid, m_grid = 0:3, N_quad = 500L, ...) {
+  if (!inherits(pp, "ppp")) {
+    stop("cv_density_lp_ppp requires a 'ppp' object from spatstat.geom")
+  }
+  cv_density_lp(pp, h_grid = h_grid, m_grid = m_grid, N_quad = N_quad, ...)
 }

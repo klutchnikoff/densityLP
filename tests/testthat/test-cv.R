@@ -78,15 +78,11 @@ test_that("cv_density_lp: grids stored in output match inputs", {
   expect_equal(cv$grids$m, m_grid)
 })
 
-test_that("cv_density_lp: error if X is not a matrix", {
-  expect_error(
-    cv_density_lp(
-      as.data.frame(matrix(1, 10, 2)),
-      h_grid = 0.3,
-      domain = domain_Rd(2L)
-    ),
-    "matrix"
-  )
+test_that("cv_density_lp: allows data.frame and error if input is a list", {
+  X_df <- as.data.frame(matrix(runif(20), 10, 2))
+  dom <- domain_Rd(2L)
+  expect_no_error(cv_density_lp(X_df, h_grid = 0.3, domain = dom))
+  expect_error(cv_density_lp(as.list(X_df), h_grid = 0.3, domain = dom))
 })
 
 test_that("cv_density_lp: error if h_grid contains non-positive value", {
