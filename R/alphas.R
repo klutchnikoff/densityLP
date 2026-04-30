@@ -13,7 +13,7 @@ build_alphas <- function(m, d) {
   stopifnot(is.numeric(m), length(m) == 1L, m >= 0, m == floor(m))
   stopifnot(is.numeric(d), length(d) == 1L, d >= 1, d == floor(d))
 
-  grid <- do.call(expand.grid, rep(list(seq.int(0L, m)), d))
+  grid <- do.call(expand.grid, rep(list(0:m), d))
   valid <- rowSums(grid) <= m
   alphas <- matrix(as.integer(as.matrix(grid[valid, , drop = FALSE])), ncol = d)
 
