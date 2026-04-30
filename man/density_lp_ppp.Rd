@@ -4,7 +4,7 @@
 \alias{density_lp_ppp}
 \title{Local polynomial density estimation for a spatial point pattern}
 \usage{
-density_lp_ppp(pp, h, m = 0L, N_quad = 500L, nx = 128L, ny = 128L)
+density_lp_ppp(pp, h, m = 0L, N_quad = 500L, nx = 128L, ny = 128L, ...)
 }
 \arguments{
 \item{pp}{A \code{ppp} object (spatstat.geom).}
@@ -18,24 +18,25 @@ density_lp_ppp(pp, h, m = 0L, N_quad = 500L, nx = 128L, ny = 128L)
 \item{nx}{Number of pixel columns (default 128).}
 
 \item{ny}{Number of pixel rows (default 128).}
+
+\item{...}{Additional arguments passed to \code{\link[=density_lp]{density_lp()}}.}
 }
 \value{
-An S3 object of class \code{"density_lp_ppp"}, which also inherits from
+An S3 object of class \code{"density_lp"}, which also inherits from
 \code{spatstat.geom::im}. Pixels outside \code{Window(pp)} are \code{NA}.
 }
 \description{
-Convenience wrapper around \code{\link[=density_lp]{density_lp()}} for \code{ppp} objects (spatstat).
-The evaluation grid and the domain are derived automatically from
-\code{Window(pp)}.  The result is a \code{spatstat.geom::im} pixel image, fully
-compatible with the spatstat plotting and analysis ecosystem.
+This function is now an alias for \code{\link[=density_lp]{density_lp()}} when called on a \code{ppp}
+object.
 }
 \examples{
+\donttest{
 set.seed(1)
 pp <- spatstat.geom::ppp(runif(50), runif(50), window = spatstat.geom::owin())
 fit <- density_lp_ppp(pp, h = 0.3, m = 1L, N_quad = 100L, nx = 20L, ny = 20L)
 print(fit)
-
+}
 }
 \seealso{
-\code{\link[=density_lp]{density_lp()}}, \code{\link[=domain_from_owin]{domain_from_owin()}}
+\code{\link[=density_lp]{density_lp()}}
 }

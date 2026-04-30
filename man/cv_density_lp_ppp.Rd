@@ -4,7 +4,7 @@
 \alias{cv_density_lp_ppp}
 \title{LOO cross-validation for a spatial point pattern}
 \usage{
-cv_density_lp_ppp(pp, h_grid, m_grid = 0:3, N_quad = 500L)
+cv_density_lp_ppp(pp, h_grid, m_grid = 0:3, N_quad = 500L, ...)
 }
 \arguments{
 \item{pp}{A \code{ppp} object (spatstat.geom).}
@@ -14,21 +14,21 @@ cv_density_lp_ppp(pp, h_grid, m_grid = 0:3, N_quad = 500L)
 \item{m_grid}{Integer vector of polynomial degrees (default \code{0:3}).}
 
 \item{N_quad}{Number of quadrature points per evaluation (default 500).}
+
+\item{...}{Additional arguments passed to \code{\link[=cv_density_lp]{cv_density_lp()}}.}
 }
 \value{
 An S3 object of class \code{"cv_density_lp"} (see \code{\link[=cv_density_lp]{cv_density_lp()}}).
 }
 \description{
-Convenience wrapper around \code{\link[=cv_density_lp]{cv_density_lp()}} for \code{ppp} objects. The domain
-is derived automatically from \code{Window(pp)}.
+This function is now an alias for \code{\link[=cv_density_lp]{cv_density_lp()}} when called on a \code{ppp}
+object.
 }
 \examples{
+\donttest{
 set.seed(1)
-pp <- spatstat.geom::ppp(runif(30), runif(30), window = spatstat.geom::owin())
+pp <- spatstat.geom::ppp(runif(50), runif(50), window = spatstat.geom::owin())
 cv <- cv_density_lp_ppp(pp, h_grid = c(0.2, 0.4), m_grid = 0:1, N_quad = 100L)
 print(cv)
-
 }
-\seealso{
-\code{\link[=cv_density_lp]{cv_density_lp()}}, \code{\link[=density_lp_ppp]{density_lp_ppp()}}
 }

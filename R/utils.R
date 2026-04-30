@@ -2,11 +2,8 @@
 
 #' @keywords internal
 check_X <- function(X) {
-  if (!is.matrix(X)) {
-    stop("`X` must be a numeric matrix (n x d). Use `as.matrix(X)` if needed.")
-  }
-  if (!is.numeric(X)) {
-    stop("`X` must be a numeric matrix.")
+  if (!is.numeric(as.matrix(X))) {
+    stop("`X` must be numeric.")
   }
   if (anyNA(X)) {
     stop("`X` contains missing values (NA).")
@@ -18,12 +15,6 @@ check_X <- function(X) {
 
 #' @keywords internal
 check_t_grid <- function(t_grid, d) {
-  if (!is.matrix(t_grid)) {
-    stop("`t_grid` must be a numeric matrix (p x d).")
-  }
-  if (!is.numeric(t_grid)) {
-    stop("`t_grid` must be a numeric matrix.")
-  }
   if (ncol(t_grid) != d) {
     stop(
       "`t_grid` must have ",
@@ -34,6 +25,9 @@ check_t_grid <- function(t_grid, d) {
       ncol(t_grid),
       "."
     )
+  }
+  if (!is.numeric(as.matrix(t_grid))) {
+    stop("`t_grid` must be numeric.")
   }
   if (anyNA(t_grid)) {
     stop("`t_grid` contains missing values (NA).")
@@ -111,4 +105,9 @@ check_domain <- function(domain, d) {
       ")."
     )
   }
+}
+
+#' @keywords internal
+call_on_columns <- function(fn, mat) {
+  do.call(fn, lapply(seq_len(ncol(mat)), function(j) mat[, j]))
 }

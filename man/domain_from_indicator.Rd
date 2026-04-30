@@ -18,7 +18,7 @@ An \code{"domain_lp"} object.
 Domain defined by an indicator function
 }
 \examples{
-is_in <- function(x, y) x^2 + y^2 <= 1
-dom <- domain_from_indicator(is_in)
+is_in_domain <- function(x, y) x^2 + y^2 <= 1
+dom <- domain_from_indicator(is_in_domain)
 print(dom)
 }

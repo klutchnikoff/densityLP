@@ -52,11 +52,6 @@ rfactory <- function(f, is_in_domain = NULL, box, M = NULL, N_pilot = 2000L) {
 
   coord_names <- names(formals(f))
 
-  .call_fn <- function(fn, mat) {
-    args <- lapply(seq_len(d), function(j) mat[, j])
-    do.call(fn, args)
-  }
-
   .sample_box <- function(n) {
     mat <- matrix(runif(n * d), n, d)
     sweep(sweep(mat, 2L, upper - lower, "*"), 2L, lower, "+")
@@ -64,9 +59,9 @@ rfactory <- function(f, is_in_domain = NULL, box, M = NULL, N_pilot = 2000L) {
 
   if (is.null(M)) {
     pilots <- .sample_box(N_pilot)
-    fvals <- .call_fn(f, pilots)
+    fvals <- call_on_columns(f, pilots)
     if (!is.null(is_in_domain)) {
-      fvals <- fvals * .call_fn(is_in_domain, pilots)
+      fvals <- fvals * call_on_columns(is_in_domain, pilots)
     }
     if (max(fvals) <= 0) {
       stop("All pilot values are zero or negative. Check `box` and `f`.")
@@ -98,13 +93,13 @@ rfactory <- function(f, is_in_domain = NULL, box, M = NULL, N_pilot = 2000L) {
       }
       cands <- .sample_box(batch)
       if (!is.null(is_in_domain)) {
-        cands <- cands[.call_fn(is_in_domain, cands), , drop = FALSE]
+        cands <- cands[call_on_columns(is_in_domain, cands), , drop = FALSE]
       }
       if (nrow(cands) == 0L) {
         next
       }
 
-      fvals <- .call_fn(f, cands)
+      fvals <- call_on_columns(f, cands)
       if (any(fvals > M)) {
         warning(
           "some fvals exceed M: M is underestimated, sample may be biased."

@@ -93,8 +93,8 @@ test_that("check_domain: error on dimension mismatch", {
 
 # ── check_X / check_t_grid ─────────────────────────────────────────────────────
 
-test_that("check_X: error if not a matrix", {
-  expect_error(check_X(as.data.frame(matrix(1, 3, 2))), "matrix")
+test_that("check_X: allows numeric data.frame", {
+  expect_no_error(check_X(as.data.frame(matrix(1, 3, 2))))
 })
 
 test_that("check_X: error if not numeric", {
@@ -111,8 +111,8 @@ test_that("check_X: error if zero rows", {
   expect_error(check_X(matrix(numeric(0), 0, 2)), "one observation")
 })
 
-test_that("check_t_grid: error if not a matrix", {
-  expect_error(check_t_grid(c(0.5, 0.5), d = 2L), "matrix")
+test_that("check_t_grid: allows numeric data.frame", {
+  expect_no_error(check_t_grid(as.data.frame(matrix(0.5, 3, 2)), d = 2L))
 })
 
 test_that("check_t_grid: error on dimension mismatch", {
