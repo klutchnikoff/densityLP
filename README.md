@@ -1,6 +1,13 @@
 
 # densityLP
 
+[![R-CMD-check](https://github.com/klutchnikoff/densityLP/actions/workflows/ci.yaml/badge.svg)](https://github.com/klutchnikoff/densityLP/actions/workflows/ci.yaml)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/densityLP)](https://CRAN.R-project.org/package=densityLP)
+[![License:
+MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://img.shields.io/badge/DOI-10.3150%2F24--BEJ1802-blue.svg)](https://doi.org/10.3150/24-BEJ1802)
+
 **Local Polynomial Density Estimation on Complicated Domains**
 
 `densityLP` implements the nonparametric local polynomial density
