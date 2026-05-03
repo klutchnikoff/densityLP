@@ -46,6 +46,9 @@ fit <- density_lp(X, t_grid = t_grid, h = 0.2, m = 1L,
 plot(fit, main = "Local linear estimate — unit square")
 ```
 
+    ## Warning in plot.density_lp(fit, main = "Local linear estimate — unit square"):
+    ## plot.density_lp: no default graphical method for d = 2. Using scatter plot.
+
 ![](README_files/figure-gfm/square-example-1.png)<!-- -->
 
 ### Spatial point pattern on an L-shaped domain
